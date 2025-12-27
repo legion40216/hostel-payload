@@ -1,4 +1,5 @@
 {
+  "type": "module",
   "name": "hostel-payload-app",
   "version": "0.1.0",
   "private": true,
@@ -6,12 +7,28 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "generate:types": "PAYLOAD_CONFIG_PATH=src/payload.config.ts payload generate:types"
   },
   "dependencies": {
-    "next": "16.1.1",
-    "react": "19.2.3",
-    "react-dom": "19.2.3"
+    "@payloadcms/db-postgres": "^3.69.0",
+    "@payloadcms/next": "^3.69.0",
+    "@payloadcms/richtext-lexical": "^3.69.0",
+    "@tanstack/react-query": "^5.90.12",
+    "@trpc/client": "^11.8.1",
+    "@trpc/server": "^11.8.1",
+    "@trpc/tanstack-react-query": "^11.8.1",
+    "client-only": "^0.0.1",
+    "date-fns": "^4.1.0",
+    "graphql": "^16.12.0",
+    "next": "^15.4.10",
+    "payload": "^3.69.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "react-error-boundary": "^6.0.0",
+    "server-only": "^0.0.1",
+    "superjson": "^2.2.6",
+    "zod": "^4.2.1"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
