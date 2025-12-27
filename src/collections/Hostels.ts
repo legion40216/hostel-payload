@@ -1,4 +1,6 @@
-import type { CollectionConfig } from 'payload'
+import type { CollectionConfig } from "payload";
+// Import the specific types needed for access and hooks
+import type { Access, CollectionBeforeChangeHook } from "payload";
 
 export const Hostels: CollectionConfig = {
   slug: "hostels",
@@ -7,10 +9,11 @@ export const Hostels: CollectionConfig = {
     defaultColumns: ["name", "area", "rentPerBed", "availableBeds", "roomType"],
   },
   access: {
-    read: () => true, // Public can read
-    create: ({ req: { user } }: { req: { user: any } }) => !!user, // Only logged-in users can create
-    update: ({ req: { user } }: { req: { user: any } }) => !!user,
-    delete: ({ req: { user } }: { req: { user: any } }) => !!user,
+    read: () => true,
+    // Use the 'Access' type or rely on Payload's internal inference
+    create: ({ req: { user } }) => !!user,
+    update: ({ req: { user } }) => !!user,
+    delete: ({ req: { user } }) => !!user,
   },
   fields: [
     // Basic Info
@@ -39,26 +42,17 @@ export const Hostels: CollectionConfig = {
         },
         {
           name: "area",
-          type: "select",
+          type: "text", // changed from select
           required: true,
-          options: [
-            { label: "Saddar", value: "Saddar" },
-            { label: "Latifabad", value: "Latifabad" },
-            { label: "Qasimabad", value: "Qasimabad" },
-            { label: "Near University", value: "Near University" },
-            { label: "Cantonment", value: "Cantonment" },
-          ],
         },
         {
           name: "city",
-          type: "text",
+          type: "text", // remove defaultValue
           required: true,
-          defaultValue: "Hyderabad",
         },
         {
           name: "postalCode",
           type: "text",
-          required: true,
         },
       ],
     },
@@ -218,15 +212,18 @@ export const Hostels: CollectionConfig = {
     },
   ],
   hooks: {
-    // Auto-calculate available beds before saving
     beforeChange: [
-      ({ data }: { data: any }) => {
-        if (data.totalBeds && data.occupiedBeds !== undefined) {
+      ({ data }) => {
+        // You can safely cast or check properties here
+        if (
+          typeof data.totalBeds === "number" &&
+          typeof data.occupiedBeds === "number"
+        ) {
           data.availableBeds = data.totalBeds - data.occupiedBeds;
         }
         return data;
       },
     ],
   },
-  timestamps: true, // Adds createdAt and updatedAt automatically
+  timestamps: true,
 };

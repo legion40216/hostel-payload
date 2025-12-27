@@ -1,6 +1,7 @@
 import { createTRPCRouter, baseProcedure } from "@/trpc/init";
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
+import type { Where } from "payload";
 
 export const hostelsRouter = createTRPCRouter({
   getAll: baseProcedure
@@ -16,36 +17,44 @@ export const hostelsRouter = createTRPCRouter({
     )
     .query(async ({ ctx, input }) => {
       try {
-        const where: any = {};
+        const andFilters: Where[] = [];
 
         // Filter by area
         if (input?.area) {
-          where['address.area'] = {
-            equals: input.area,
-          };
+          andFilters.push({
+            'address.area': {
+              equals: input.area,
+            },
+          });
         }
 
         // Filter by room type
         if (input?.roomType) {
-          where.roomType = {
-            equals: input.roomType,
-          };
+          andFilters.push({
+            roomType: {
+              equals: input.roomType,
+            },
+          });
         }
 
         // Filter by rent range
         if (input?.minRent || input?.maxRent) {
-          where.rentPerBed = {};
-          if (input.minRent) {
-            where.rentPerBed.greater_than_equal = input.minRent;
-          }
-          if (input.maxRent) {
-            where.rentPerBed.less_than_equal = input.maxRent;
-          }
+          // Using a record type instead of 'any' to satisfy ESLint
+          const rentFilter: Record<string, number> = {}; 
+          if (input.minRent) rentFilter.greater_than_equal = input.minRent;
+          if (input.maxRent) rentFilter.less_than_equal = input.maxRent;
+          
+          andFilters.push({
+            rentPerBed: rentFilter
+          });
         }
+
+        // Construct final where clause
+        const finalWhere: Where = andFilters.length > 0 ? { and: andFilters } : {};
 
         const result = await ctx.payload.find({
           collection: "hostels",
-          where: Object.keys(where).length > 0 ? where : undefined,
+          where: finalWhere,
           limit: input?.limit || 10,
           page: input?.page || 1,
           sort: '-createdAt',
@@ -64,17 +73,12 @@ export const hostelsRouter = createTRPCRouter({
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
           message: "Failed to fetch hostels",
-          cause: error,
         });
       }
     }),
 
   getById: baseProcedure
-    .input(
-      z.object({
-        id: z.string(),
-      })
-    )
+    .input(z.object({ id: z.string() }))
     .query(async ({ ctx, input }) => {
       try {
         const hostel = await ctx.payload.findByID({
@@ -91,15 +95,11 @@ export const hostelsRouter = createTRPCRouter({
 
         return { hostel };
       } catch (error) {
-        if (error instanceof TRPCError) {
-          throw error;
-        }
-
+        if (error instanceof TRPCError) throw error;
         console.error("Error [getById]:", error);
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
           message: "Failed to fetch hostel",
-          cause: error,
         });
       }
     }),
@@ -135,12 +135,10 @@ export const hostelsRouter = createTRPCRouter({
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
           message: "Failed to fetch available hostels",
-          cause: error,
         });
       }
     }),
 
-  // Search hostels
   search: baseProcedure
     .input(
       z.object({
@@ -154,21 +152,9 @@ export const hostelsRouter = createTRPCRouter({
           collection: "hostels",
           where: {
             or: [
-              {
-                name: {
-                  contains: input.query,
-                },
-              },
-              {
-                description: {
-                  contains: input.query,
-                },
-              },
-              {
-                'address.area': {
-                  contains: input.query,
-                },
-              },
+              { name: { contains: input.query } },
+              { description: { contains: input.query } },
+              { 'address.area': { contains: input.query } },
             ],
           },
           limit: input.limit,
@@ -183,7 +169,6 @@ export const hostelsRouter = createTRPCRouter({
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
           message: "Failed to search hostels",
-          cause: error,
         });
       }
     }),

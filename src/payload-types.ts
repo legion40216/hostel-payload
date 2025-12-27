@@ -199,7 +199,7 @@ export interface Hostel {
     street: string;
     area: 'Saddar' | 'Latifabad' | 'Qasimabad' | 'Near University' | 'Cantonment';
     city: string;
-    postalCode: string;
+    postalCode?: string | null;
   };
   thumbnail: number | Media;
   images?:
