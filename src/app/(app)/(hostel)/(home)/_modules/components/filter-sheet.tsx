@@ -1,0 +1,272 @@
+import { useState } from 'react'
+import { useRouter } from 'next/navigation'
+import { Filter, X } from 'lucide-react'
+import { formatter } from '@/utils/formatters'
+import { Facility, RoomType, BedsPerRoom } from '@/types/types'
+import { AREAS, FACILITIES } from '@/data/data'
+
+import { Button } from '@/components/ui/button'
+import { Label } from '@/components/ui/label'
+import { Slider } from '@/components/ui/slider'
+import { Checkbox } from '@/components/ui/checkbox'
+
+import { 
+  RadioGroup, 
+  RadioGroupItem 
+} from '@/components/ui/radio-group'
+
+import { 
+  Sheet, 
+  SheetContent, 
+  SheetTrigger, 
+  SheetTitle, 
+  SheetDescription 
+} from '@/components/ui/sheet'
+
+import { 
+  Select, 
+  SelectContent, 
+  SelectItem, 
+  SelectTrigger, 
+  SelectValue 
+} from '@/components/ui/select'
+
+interface FilterState {
+  priceRange: [number, number]
+  facilities: Facility[]
+  roomType: RoomType | "all"
+  area: string
+  bedsPerRoom: BedsPerRoom | "all"
+}
+
+interface FilterSheetProps {
+  filters: FilterState
+  setFilters: (filters: FilterState) => void
+  onApply: () => void
+}
+
+export default function FilterSheet({ filters, setFilters, onApply }: FilterSheetProps) {
+  const router = useRouter()
+  const [localFilters, setLocalFilters] = useState<FilterState>(filters)
+  const [isOpen, setIsOpen] = useState(false)
+
+  const handleFacilityToggle = (facility: Facility) => {
+    setLocalFilters(prev => ({
+      ...prev,
+      facilities: prev.facilities.includes(facility)
+        ? prev.facilities.filter(f => f !== facility)
+        : [...prev.facilities, facility]
+    }))
+  }
+
+  const handleClearAll = () => {
+    const cleared: FilterState = {
+      priceRange: [3000, 20000],
+      facilities: [],
+      roomType: "all",
+      area: "all",
+      bedsPerRoom: "all"
+    }
+    
+    // Clear local state
+    setLocalFilters(cleared)
+    
+    // Clear parent state
+    setFilters(cleared)
+    
+    // Clear URL - navigate to base path without any query params
+    router.push(window.location.pathname, { scroll: false })
+    
+    // Close the sheet
+    setIsOpen(false)
+  }
+
+  const handleApply = () => {
+    setFilters(localFilters)
+    onApply()
+    setIsOpen(false)
+  }
+
+  const activeFiltersCount = 
+    localFilters.facilities.length + 
+    (localFilters.roomType !== "all" ? 1 : 0) +
+    (localFilters.area !== "all" ? 1 : 0) +
+    (localFilters.bedsPerRoom !== "all" ? 1 : 0) +
+    (localFilters.priceRange[0] !== 3000 || localFilters.priceRange[1] !== 20000 ? 1 : 0)
+
+  return (
+    <Sheet>
+      <SheetTrigger asChild>
+        <Button variant="outline">
+          <Filter className="mr-2 size-4" />
+          Filters
+          {activeFiltersCount > 0 && (
+            <span className="ml-2 rounded-full bg-primary px-2 py-0.5 text-xs text-primary-foreground">
+              {activeFiltersCount}
+            </span>
+          )}
+        </Button>
+      </SheetTrigger>
+
+      <SheetContent side="left" className="p-3 [&>button]:hidden overflow-y-auto">
+        <SheetTitle className="sr-only">Filter Properties</SheetTitle>
+        <SheetDescription className="sr-only">
+          Filter hostels by price, facilities, and location
+        </SheetDescription>
+
+        {/* Header */}
+        <div className="flex items-center justify-between mb-6">
+          <h2 className="text-lg font-semibold">Filters</h2>
+          <SheetTrigger asChild>
+            <Button variant="ghost" size="icon">
+              <X className="size-5" />
+            </Button>
+          </SheetTrigger>
+        </div>
+
+        <div className="space-y-6">
+          {/* Price Range */}
+          <div className="space-y-3">
+            <Label className="text-base font-medium">Price Range (PKR/month)</Label>
+            <div className="pt-2">
+              <Slider
+                min={3000}
+                max={20000}
+                step={500}
+                value={localFilters.priceRange}
+                onValueChange={(value) => setLocalFilters(prev => ({ 
+                  ...prev, 
+                  priceRange: value as [number, number]
+                }))}
+                className="mb-4"
+              />
+              <div className="flex justify-between text-sm text-muted-foreground">
+                <span>{formatter.format(localFilters.priceRange[0])}</span>
+                <span>{formatter.format(localFilters.priceRange[1])}</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Room Type */}
+          <div className="space-y-3">
+            <Label className="text-base font-medium">Room Type</Label>
+            <RadioGroup 
+              value={localFilters.roomType} 
+              onValueChange={(value) => setLocalFilters(prev => ({ 
+                ...prev, 
+                roomType: value as RoomType | "all"
+              }))}
+            >
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="all" id="all" />
+                <Label htmlFor="all" className="font-normal cursor-pointer">All</Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="male" id="male" />
+                <Label htmlFor="male" className="font-normal cursor-pointer">Male Only</Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="female" id="female" />
+                <Label htmlFor="female" className="font-normal cursor-pointer">Female Only</Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="mixed" id="mixed" />
+                <Label htmlFor="mixed" className="font-normal cursor-pointer">Mixed/Co-ed</Label>
+              </div>
+            </RadioGroup>
+          </div>
+
+          {/* Location */}
+          <div className="space-y-3">
+            <Label className="text-base font-medium">Location</Label>
+            <Select 
+              value={localFilters.area} 
+              onValueChange={(value) => setLocalFilters(prev => ({ 
+                ...prev, 
+                area: value 
+              }))}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select area" />
+              </SelectTrigger>
+              <SelectContent>
+                {AREAS.map(area => (
+                  <SelectItem key={area.value} value={area.value}>
+                    {area.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Beds per Room */}
+          <div className="space-y-3">
+            <Label className="text-base font-medium">Beds per Room</Label>
+            <RadioGroup 
+              value={localFilters.bedsPerRoom} 
+              onValueChange={(value) => setLocalFilters(prev => ({ 
+                ...prev, 
+                bedsPerRoom: value as BedsPerRoom | "all"
+              }))}
+            >
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="all" id="beds-all" />
+                <Label htmlFor="beds-all" className="font-normal cursor-pointer">Any</Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="single" id="single" />
+                <Label htmlFor="single" className="font-normal cursor-pointer">Single (1 bed)</Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="double" id="double" />
+                <Label htmlFor="double" className="font-normal cursor-pointer">Shared (2 beds)</Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="triple" id="triple" />
+                <Label htmlFor="triple" className="font-normal cursor-pointer">Shared (3+ beds)</Label>
+              </div>
+            </RadioGroup>
+          </div>
+
+          {/* Facilities */}
+          <div className="space-y-3">
+            <Label className="text-base font-medium">Facilities</Label>
+            <div className="space-y-2">
+              {FACILITIES.map(facility => (
+                <div key={facility} className="flex items-center space-x-2">
+                  <Checkbox 
+                    id={facility}
+                    checked={localFilters.facilities.includes(facility)}
+                    onCheckedChange={() => handleFacilityToggle(facility)}
+                  />
+                  <Label 
+                    htmlFor={facility} 
+                    className="font-normal cursor-pointer"
+                  >
+                    {facility}
+                  </Label>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Footer Actions */}
+        <div className="flex gap-2 pt-6 mt-6 border-t sticky bottom-0 bg-background">
+          <Button 
+            variant="outline" 
+            className="flex-1"
+            onClick={handleClearAll}
+          >
+            Clear All
+          </Button>
+          <SheetTrigger asChild>
+            <Button className="flex-1" onClick={handleApply}>
+              Apply Filters
+            </Button>
+          </SheetTrigger>
+        </div>
+      </SheetContent>
+    </Sheet>
+  )
+}

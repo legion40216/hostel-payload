@@ -197,7 +197,7 @@ export interface Hostel {
   description: string;
   address: {
     street: string;
-    area: 'Saddar' | 'Latifabad' | 'Qasimabad' | 'Near University' | 'Cantonment';
+    area: string;
     city: string;
     postalCode?: string | null;
   };
