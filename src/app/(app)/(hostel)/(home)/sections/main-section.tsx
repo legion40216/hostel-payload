@@ -1,6 +1,6 @@
 "use client";
 import React, { useState, useMemo, useEffect } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { useViewStore } from "@/hooks/view-store";
 
 import { SearchParamsValues } from "@/schemas";
@@ -19,6 +19,15 @@ import FilterBar from "../_modules/components/filter-bar";
 import PropertiesSidebar from "../_modules/components/properties-sidebar";
 import EmptyState from "@/components/global-ui/empty-state";
 import { format } from "date-fns";
+
+import dynamic from 'next/dynamic';
+import { vi } from "zod/v4/locales";
+
+// Dynamically import with no SSR
+const HostelMap = dynamic(() => import("../_modules/components/hostel-map"), { 
+  ssr: false,
+  loading: () => <div className="w-full h-full flex items-center justify-center">Loading map...</div>
+});
 
 interface FilterSectionProps {
   searchParams: SearchParamsValues;
@@ -99,7 +108,6 @@ const MainSectionContent = ({ searchParams }: FilterSectionProps) => {
 
   // Component State and Handlers
   const router = useRouter();
-  const clientSearchParams = useSearchParams();
   const { viewMode, setViewMode } = useViewStore();
 
   // Initialize state from URL params
@@ -220,9 +228,18 @@ const MainSectionContent = ({ searchParams }: FilterSectionProps) => {
 
       {/* Main Content Area */}
       <div className="grid grid-cols-[1fr_minmax(30%,auto)] gap-4">
-        <div className="bg-muted rounded-lg flex items-center justify-center min-h-150">
-          <p className="text-muted-foreground">Map View Coming Soon</p>
+        <div className={`${viewMode === "grid" ? "aspect-square" : ""} 
+          relative bg-muted rounded-lg overflow-hidden isolate`}
+        >
+          <HostelMap 
+            properties={sortedProperties} 
+            selectedProperty={null}
+            onPropertySelect={(property) => {
+              console.log('Selected:', property);
+            }}
+          />
         </div>
+
 
         <PropertiesSidebar
           viewMode={viewMode}

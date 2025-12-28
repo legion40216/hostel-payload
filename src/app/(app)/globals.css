@@ -140,3 +140,37 @@
     @apply bg-background text-foreground;
   }
 }
+
+@import 'leaflet/dist/leaflet.css';
+
+/* Your existing marker styles */
+.custom-marker {
+  background: none;
+  border: none;
+}
+
+.marker-pin {
+  width: 60px;
+  height: 30px;
+  background: white;
+  border: 2px solid #3b82f6;
+  border-radius: 15px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.marker-pin:hover {
+  transform: scale(1.1);
+}
+
+.marker-pin.selected {
+  background: #3b82f6;
+  color: white;
+  border-color: #2563eb;
+}
