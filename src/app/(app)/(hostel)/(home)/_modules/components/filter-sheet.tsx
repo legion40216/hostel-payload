@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Filter, X } from 'lucide-react'
 import { formatter } from '@/utils/formatters'
@@ -53,16 +53,26 @@ export default function FilterSheet({
   areas 
 }: FilterSheetProps) {
   const router = useRouter()
+
   const [localFilters, setLocalFilters] = useState<FilterState>(filters)
   const [isOpen, setIsOpen] = useState(false)
 
+  // Sync local filters when sheet opens or when parent filters change
+  useEffect(() => {
+    setLocalFilters(filters)
+  }, [filters, isOpen])
+
   const handleFacilityToggle = (facility: Facility) => {
-    setLocalFilters(prev => ({
-      ...prev,
-      facilities: prev.facilities.includes(facility)
+    setLocalFilters(prev => {
+      const newFacilities = prev.facilities.includes(facility)
         ? prev.facilities.filter(f => f !== facility)
         : [...prev.facilities, facility]
-    }))
+      
+      return {
+        ...prev,
+        facilities: newFacilities
+      }
+    })
   }
 
   const handleClearAll = () => {
@@ -74,13 +84,10 @@ export default function FilterSheet({
       bedsPerRoom: "all"
     }
     
-    // Clear local state
     setLocalFilters(cleared)
-    
-    // Clear parent state
     setFilters(cleared)
     
-    // Clear URL - navigate to base path without any query params
+    // Clear URL query params
     router.push(window.location.pathname, { scroll: false })
     
     // Close the sheet
@@ -93,15 +100,19 @@ export default function FilterSheet({
     setIsOpen(false)
   }
 
-  const activeFiltersCount = 
-    localFilters.facilities.length + 
-    (localFilters.roomType !== "all" ? 1 : 0) +
-    (localFilters.area !== "all" ? 1 : 0) +
-    (localFilters.bedsPerRoom !== "all" ? 1 : 0) +
-    (localFilters.priceRange[0] !== 3000 || localFilters.priceRange[1] !== 20000 ? 1 : 0)
+  const activeFiltersCount = (() => {
+    const countFilters = (f: FilterState) =>
+      f.facilities.length +
+      (f.roomType !== "all" ? 1 : 0) +
+      (f.area !== "all" ? 1 : 0) +
+      (f.bedsPerRoom !== "all" ? 1 : 0) +
+      (f.priceRange[0] !== 3000 || f.priceRange[1] !== 20000 ? 1 : 0)
+
+    return isOpen ? countFilters(localFilters) : countFilters(filters)
+  })()
 
   return (
-    <Sheet>
+    <Sheet open={isOpen} onOpenChange={setIsOpen}>
       <SheetTrigger asChild>
         <Button variant="outline">
           <Filter className="mr-2 size-4" />
@@ -126,11 +137,13 @@ export default function FilterSheet({
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-lg font-semibold">Filters</h2>
-          <SheetTrigger asChild>
-            <Button variant="ghost" size="icon">
-              <X className="size-5" />
-            </Button>
-          </SheetTrigger>
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            onClick={() => setIsOpen(false)}
+          >
+            <X className="size-5" />
+          </Button>
         </div>
 
         <div className="space-y-6">
@@ -215,8 +228,7 @@ export default function FilterSheet({
                 <SelectValue placeholder="Select area" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value={"all"}>All Areas</SelectItem>
-
+                <SelectItem value="all">All Areas</SelectItem>
                 {areas.map((area) => (
                   <SelectItem key={area.value} value={area.value}>
                     {area.label}
@@ -240,10 +252,7 @@ export default function FilterSheet({
             >
               <div className="flex items-center space-x-2">
                 <RadioGroupItem value="all" id="beds-all" />
-                <Label
-                  htmlFor="beds-all"
-                  className="font-normal cursor-pointer"
-                >
+                <Label htmlFor="beds-all" className="font-normal cursor-pointer">
                   Any
                 </Label>
               </div>
@@ -272,7 +281,6 @@ export default function FilterSheet({
           <div className="space-y-3">
             <Label className="text-base font-medium">Facilities</Label>
             <div className="space-y-2">
-              {/* Use Object.entries to get both the Name and the Icon Component */}
               {Object.entries(FACILITY_MAP).map(([name]) => (
                 <div key={name} className="flex items-center space-x-3">
                   <Checkbox
@@ -299,13 +307,11 @@ export default function FilterSheet({
           <Button variant="outline" className="flex-1" onClick={handleClearAll}>
             Clear All
           </Button>
-          <SheetTrigger asChild>
-            <Button className="flex-1" onClick={handleApply}>
-              Apply Filters
-            </Button>
-          </SheetTrigger>
+          <Button className="flex-1" onClick={handleApply}>
+            Apply Filters
+          </Button>
         </div>
       </SheetContent>
     </Sheet>
-  );
+  )
 }

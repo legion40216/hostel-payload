@@ -22,7 +22,7 @@ type PropertyProps = Pick<
 
 interface PropertiesSidebarProps {
   viewMode: "grid" | "list";
-  sortedProperties: Property[];
+  sortedProperties: PropertyProps[];
   data: PropertyProps[];
 }
 

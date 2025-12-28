@@ -1,8 +1,8 @@
 "use client";
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useViewStore } from "@/hooks/view-store";
-import { properties } from "@/data/data";
+
 import { SearchParamsValues } from "@/schemas";
 import {
   searchParamsToFilters,
@@ -18,6 +18,7 @@ import { ErrorBoundary } from "react-error-boundary";
 import FilterBar from "../_modules/components/filter-bar";
 import PropertiesSidebar from "../_modules/components/properties-sidebar";
 import EmptyState from "@/components/global-ui/empty-state";
+import { format } from "date-fns";
 
 interface FilterSectionProps {
   searchParams: SearchParamsValues;
@@ -41,19 +42,19 @@ export const MainSection = ({ searchParams }: FilterSectionProps) => {
 };
 
 const MainSectionContent = ({ searchParams }: FilterSectionProps) => {
-    const trpc = useTRPC();
-    const { data } = useSuspenseQuery(trpc.hostels.getAll.queryOptions());
-    
-    const hostels = data?.hostels || [];
+  const trpc = useTRPC();
+  const { data } = useSuspenseQuery(trpc.hostels.getAll.queryOptions());
+  
+  const hostels = data?.hostels || [];
 
-    if (hostels.length === 0) {
-      return (
-        <EmptyState
-          title="No featured hostels found"
-          subtitle="Please try again later."
-        />
-      );
-    }
+  if (hostels.length === 0) {
+    return (
+      <EmptyState
+        title="No featured hostels found"
+        subtitle="Please try again later."
+      />
+    );
+  }
 
   const formattedHostels = hostels.map((item) => {
     return {
@@ -85,7 +86,9 @@ const MainSectionContent = ({ searchParams }: FilterSectionProps) => {
       bedsPerRoom: item.bedsPerRoom as "single" | "double" | "triple",
       roomType: item.roomType as "male" | "female" | "mixed",
       rentPerBed: item.rentPerBed,
-      facilities: Array.from(item.facilities),
+      facilities: Array.from(item.facilities || []),
+      createdAt: format(new Date(item.createdAt), "yyyy-MM-dd'T'HH:mm:ss.SSSxxx"),
+      updatedAt: format(new Date(item.updatedAt), "yyyy-MM-dd'T'HH:mm:ss.SSSxxx"),
     };
   });
 
@@ -105,50 +108,101 @@ const MainSectionContent = ({ searchParams }: FilterSectionProps) => {
     searchParamsToFilters(searchParams)
   );
 
-  const updateURL = (newFilters?: FilterState, newSort?: string) => {
-    const params = new URLSearchParams(clientSearchParams.toString());
-    const filterParams = filtersToSearchParams(newFilters || filters);
+  // Sync state with URL changes
+  useEffect(() => {
+    const newFilters = searchParamsToFilters(searchParams);
+    setFilters(newFilters);
+    setSortBy(searchParams.sort || "newest");
+  }, [searchParams]);
 
+  const updateURL = (newFilters: FilterState, newSort: string) => {
+    const params = new URLSearchParams();
+    const filterParams = filtersToSearchParams(newFilters);
+
+    // Only add non-default values to URL
     Object.entries(filterParams).forEach(([key, value]) => {
-      if (value) params.set(key, value);
-      else params.delete(key);
+      if (!value) return;
+      
+      // Skip default values
+      if (key === "minPrice" && value === "3000") return;
+      if (key === "maxPrice" && value === "20000") return;
+      if (key === "roomType" && value === "all") return;
+      if (key === "area" && value === "all") return;
+      if (key === "bedsPerRoom" && value === "all") return;
+      if (key === "facilities" && value === "") return;
+      
+      params.set(key, value);
     });
 
-    if (newSort && newSort !== "newest") params.set("sort", newSort);
-    else params.delete("sort");
+    // Add sort if not default
+    if (newSort && newSort !== "newest") {
+      params.set("sort", newSort);
+    }
 
-    // Remove default values to keep URL clean
-    if (params.get("minPrice") === "3000") params.delete("minPrice");
-    if (params.get("maxPrice") === "20000") params.delete("maxPrice");
-    if (params.get("roomType") === "all") params.delete("roomType");
-    if (params.get("area") === "all") params.delete("area");
-    if (params.get("bedsPerRoom") === "all") params.delete("bedsPerRoom");
-    if (!params.get("facilities")) params.delete("facilities");
-
-    const newURL = params.toString() ? `?${params.toString()}` : window.location.pathname;
+    const newURL = params.toString() 
+      ? `?${params.toString()}` 
+      : window.location.pathname;
+    
     router.push(newURL, { scroll: false });
   };
 
+  const handleFilterChange = (newFilters: FilterState) => {
+    setFilters(newFilters);
+    updateURL(newFilters, sortBy);
+  };
+
+  const handleSortChange = (newSort: string) => {
+    setSortBy(newSort);
+    updateURL(filters, newSort);
+  };
+
   const filteredProperties = useMemo(() => {
-    return properties.filter((property) => {
-      if (property.rentPerBed < filters.priceRange[0] || property.rentPerBed > filters.priceRange[1]) return false;
-      if (filters.roomType !== "all" && property.roomType !== filters.roomType) return false;
-      if (filters.area !== "all" && property.address.area !== filters.area) return false;
-      if (filters.bedsPerRoom !== "all" && property.bedsPerRoom !== filters.bedsPerRoom) return false;
+    return formattedHostels.filter((property) => {
+      // Price filter
+      if (property.rentPerBed < filters.priceRange[0] || 
+          property.rentPerBed > filters.priceRange[1]) {
+        return false;
+      }
+      
+      // Room type filter
+      if (filters.roomType !== "all" && property.roomType !== filters.roomType) {
+        return false;
+      }
+      
+      // Area filter
+      if (filters.area !== "all" && property.address.area !== filters.area) {
+        return false;
+      }
+      
+      // Beds per room filter
+      if (filters.bedsPerRoom !== "all" && property.bedsPerRoom !== filters.bedsPerRoom) {
+        return false;
+      }
+      
+      // Facilities filter
       if (filters.facilities.length > 0) {
         return filters.facilities.every((f) => property.facilities.includes(f));
       }
+      
       return true;
     });
-  }, [filters]);
+  }, [formattedHostels, filters]);
 
   const sortedProperties = useMemo(() => {
     const sorted = [...filteredProperties];
     switch (sortBy) {
-      case "price_low_high": return sorted.sort((a, b) => a.rentPerBed - b.rentPerBed);
-      case "price_high_low": return sorted.sort((a, b) => b.rentPerBed - a.rentPerBed);
-      case "oldest": return sorted.sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
-      default: return sorted.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+      case "price_low_high": 
+        return sorted.sort((a, b) => a.rentPerBed - b.rentPerBed);
+      case "price_high_low": 
+        return sorted.sort((a, b) => b.rentPerBed - a.rentPerBed);
+      case "oldest": 
+        return sorted.sort((a, b) => 
+          new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+        );
+      default: 
+        return sorted.sort((a, b) => 
+          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+        );
     }
   }, [filteredProperties, sortBy]);
 
@@ -156,18 +210,11 @@ const MainSectionContent = ({ searchParams }: FilterSectionProps) => {
     <div className="space-y-4">
       <FilterBar
         areas={AREAS}
-
         filters={filters}
         sortBy={sortBy}
         viewMode={viewMode}
-        onFilterChange={(newFilters) => {
-          setFilters(newFilters);
-          updateURL(newFilters, sortBy);
-        }}
-        onSortChange={(newSort) => {
-          setSortBy(newSort);
-          updateURL(filters, newSort);
-        }}
+        onFilterChange={handleFilterChange}
+        onSortChange={handleSortChange}
         onViewChange={setViewMode}
       />
 
@@ -180,7 +227,7 @@ const MainSectionContent = ({ searchParams }: FilterSectionProps) => {
         <PropertiesSidebar
           viewMode={viewMode}
           sortedProperties={sortedProperties}
-          data={formattedHostels}
+          data={sortedProperties}
         />
       </div>
     </div>
