@@ -200,6 +200,16 @@ export interface Hostel {
     area: string;
     city: string;
     postalCode?: string | null;
+    location: {
+      /**
+       * Click on map or enter manually
+       */
+      latitude: number;
+      /**
+       * Click on map or enter manually
+       */
+      longitude: number;
+    };
   };
   thumbnail: number | Media;
   images?:
@@ -212,23 +222,16 @@ export interface Hostel {
   totalBeds: number;
   occupiedBeds: number;
   /**
-   * This will be auto-calculated: totalBeds - occupiedBeds
+   * Auto-calculated: totalBeds - occupiedBeds
    */
   availableBeds: number;
   bedsPerRoom: 'single' | 'double' | 'triple';
   roomType: 'male' | 'female' | 'mixed';
   rentPerBed: number;
   securityDeposit: number;
-  facilities: (
-    | 'WiFi'
-    | 'AC'
-    | 'Laundry'
-    | 'Kitchen'
-    | '24/7 Security'
-    | 'Attached Bathroom'
-    | 'Parking'
-    | 'Generator/UPS'
-  )[];
+  facilities?:
+    | ('WiFi' | 'AC' | 'Laundry' | 'Kitchen' | '24/7 Security' | 'Attached Bathroom' | 'Parking' | 'Generator/UPS')[]
+    | null;
   manager: string;
   contactNumber: string;
   tenants?:
@@ -409,6 +412,12 @@ export interface HostelsSelect<T extends boolean = true> {
         area?: T;
         city?: T;
         postalCode?: T;
+        location?:
+          | T
+          | {
+              latitude?: T;
+              longitude?: T;
+            };
       };
   thumbnail?: T;
   images?:

@@ -1,16 +1,13 @@
 import type { CollectionConfig } from "payload";
-// Import the specific types needed for access and hooks
-import type { Access, CollectionBeforeChangeHook } from "payload";
 
 export const Hostels: CollectionConfig = {
   slug: "hostels",
   admin: {
     useAsTitle: "name",
-    defaultColumns: ["name", "area", "rentPerBed", "availableBeds", "roomType"],
+    defaultColumns: ["name", "address.area", "rentPerBed", "availableBeds", "roomType"],
   },
   access: {
     read: () => true,
-    // Use the 'Access' type or rely on Payload's internal inference
     create: ({ req: { user } }) => !!user,
     update: ({ req: { user } }) => !!user,
     delete: ({ req: { user } }) => !!user,
@@ -30,7 +27,7 @@ export const Hostels: CollectionConfig = {
       label: "Description",
     },
 
-    // Address Group
+    // Address Group with Geolocation
     {
       name: "address",
       type: "group",
@@ -39,20 +36,63 @@ export const Hostels: CollectionConfig = {
           name: "street",
           type: "text",
           required: true,
+          label: "Street Address",
         },
         {
           name: "area",
-          type: "text", // changed from select
+          type: "text", // Free text input - not predefined
           required: true,
+          label: "Area/Neighborhood",
+          admin: {
+            placeholder: "e.g., Saddar, Latifabad, Qasimabad",
+          },
         },
         {
           name: "city",
-          type: "text", // remove defaultValue
+          type: "text",
           required: true,
+          label: "City",
+          admin: {
+            placeholder: "e.g., Hyderabad",
+          },
         },
         {
           name: "postalCode",
           type: "text",
+          label: "Postal Code",
+          admin: {
+            placeholder: "e.g., 71000",
+          },
+        },
+        // Geolocation for Leaflet
+        {
+          name: "location",
+          type: "group",
+          label: "Map Location",
+          fields: [
+            {
+              name: "latitude",
+              type: "number",
+              required: true,
+              label: "Latitude",
+              admin: {
+                placeholder: "25.3960",
+                description: "Click on map or enter manually",
+                step: 0.000001,
+              },
+            },
+            {
+              name: "longitude",
+              type: "number",
+              required: true,
+              label: "Longitude",
+              admin: {
+                placeholder: "68.3578",
+                description: "Click on map or enter manually",
+                step: 0.000001,
+              },
+            },
+          ],
         },
       ],
     },
@@ -87,12 +127,14 @@ export const Hostels: CollectionConfig = {
       type: "number",
       required: true,
       min: 1,
+      label: "Total Rooms",
     },
     {
       name: "totalBeds",
       type: "number",
       required: true,
       min: 1,
+      label: "Total Beds",
     },
     {
       name: "occupiedBeds",
@@ -100,20 +142,24 @@ export const Hostels: CollectionConfig = {
       required: true,
       min: 0,
       defaultValue: 0,
+      label: "Occupied Beds",
     },
     {
       name: "availableBeds",
       type: "number",
       required: true,
       min: 0,
+      label: "Available Beds",
       admin: {
-        description: "This will be auto-calculated: totalBeds - occupiedBeds",
+        readOnly: true,
+        description: "Auto-calculated: totalBeds - occupiedBeds",
       },
     },
     {
       name: "bedsPerRoom",
       type: "select",
       required: true,
+      label: "Beds Per Room",
       options: [
         { label: "Single (1 bed)", value: "single" },
         { label: "Double (2 beds)", value: "double" },
@@ -124,6 +170,7 @@ export const Hostels: CollectionConfig = {
       name: "roomType",
       type: "select",
       required: true,
+      label: "Room Type",
       options: [
         { label: "Male Only", value: "male" },
         { label: "Female Only", value: "female" },
@@ -152,7 +199,8 @@ export const Hostels: CollectionConfig = {
       name: "facilities",
       type: "select",
       hasMany: true,
-      required: true,
+      required: false,
+      label: "Facilities",
       options: [
         { label: "WiFi", value: "WiFi" },
         { label: "AC", value: "AC" },
@@ -182,7 +230,7 @@ export const Hostels: CollectionConfig = {
       },
     },
 
-    // Tenants (optional - can be added later)
+    // Tenants
     {
       name: "tenants",
       type: "array",
@@ -214,7 +262,7 @@ export const Hostels: CollectionConfig = {
   hooks: {
     beforeChange: [
       ({ data }) => {
-        // You can safely cast or check properties here
+        // Auto-calculate available beds
         if (
           typeof data.totalBeds === "number" &&
           typeof data.occupiedBeds === "number"

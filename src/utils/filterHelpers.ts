@@ -5,7 +5,6 @@
 import { SearchParamsValues } from "@/schemas";
 import { Facility } from "@/types/types";
 
-
 export interface FilterState {
   priceRange: [number, number];
   facilities: Facility[];

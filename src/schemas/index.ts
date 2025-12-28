@@ -1,7 +1,6 @@
-
-
-import { sortOptions } from "@/data/data";
 import { z } from "zod";
+import { sortOptions } from "@/data/constants";
+
 
 export type SortOption = typeof sortOptions[number]['value'];
 

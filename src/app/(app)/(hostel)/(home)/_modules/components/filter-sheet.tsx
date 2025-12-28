@@ -2,8 +2,8 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Filter, X } from 'lucide-react'
 import { formatter } from '@/utils/formatters'
-import { Facility, RoomType, BedsPerRoom } from '@/types/types'
-import { AREAS, FACILITIES } from '@/data/data'
+import { Facility, RoomType, BedsPerRoom, Areas } from '@/types/types'
+import { FACILITY_MAP } from '@/data/constants'
 
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
@@ -43,9 +43,15 @@ interface FilterSheetProps {
   filters: FilterState
   setFilters: (filters: FilterState) => void
   onApply: () => void
+  areas: Areas
 }
 
-export default function FilterSheet({ filters, setFilters, onApply }: FilterSheetProps) {
+export default function FilterSheet({ 
+  filters, 
+  setFilters, 
+  onApply,
+  areas 
+}: FilterSheetProps) {
   const router = useRouter()
   const [localFilters, setLocalFilters] = useState<FilterState>(filters)
   const [isOpen, setIsOpen] = useState(false)
@@ -108,7 +114,10 @@ export default function FilterSheet({ filters, setFilters, onApply }: FilterShee
         </Button>
       </SheetTrigger>
 
-      <SheetContent side="left" className="p-3 [&>button]:hidden overflow-y-auto">
+      <SheetContent
+        side="left"
+        className="p-3 [&>button]:hidden overflow-y-auto"
+      >
         <SheetTitle className="sr-only">Filter Properties</SheetTitle>
         <SheetDescription className="sr-only">
           Filter hostels by price, facilities, and location
@@ -127,17 +136,21 @@ export default function FilterSheet({ filters, setFilters, onApply }: FilterShee
         <div className="space-y-6">
           {/* Price Range */}
           <div className="space-y-3">
-            <Label className="text-base font-medium">Price Range (PKR/month)</Label>
+            <Label className="text-base font-medium">
+              Price Range (PKR/month)
+            </Label>
             <div className="pt-2">
               <Slider
                 min={3000}
                 max={20000}
                 step={500}
                 value={localFilters.priceRange}
-                onValueChange={(value) => setLocalFilters(prev => ({ 
-                  ...prev, 
-                  priceRange: value as [number, number]
-                }))}
+                onValueChange={(value) =>
+                  setLocalFilters((prev) => ({
+                    ...prev,
+                    priceRange: value as [number, number],
+                  }))
+                }
                 className="mb-4"
               />
               <div className="flex justify-between text-sm text-muted-foreground">
@@ -150,28 +163,38 @@ export default function FilterSheet({ filters, setFilters, onApply }: FilterShee
           {/* Room Type */}
           <div className="space-y-3">
             <Label className="text-base font-medium">Room Type</Label>
-            <RadioGroup 
-              value={localFilters.roomType} 
-              onValueChange={(value) => setLocalFilters(prev => ({ 
-                ...prev, 
-                roomType: value as RoomType | "all"
-              }))}
+            <RadioGroup
+              value={localFilters.roomType}
+              onValueChange={(value) =>
+                setLocalFilters((prev) => ({
+                  ...prev,
+                  roomType: value as RoomType | "all",
+                }))
+              }
             >
               <div className="flex items-center space-x-2">
                 <RadioGroupItem value="all" id="all" />
-                <Label htmlFor="all" className="font-normal cursor-pointer">All</Label>
+                <Label htmlFor="all" className="font-normal cursor-pointer">
+                  All
+                </Label>
               </div>
               <div className="flex items-center space-x-2">
                 <RadioGroupItem value="male" id="male" />
-                <Label htmlFor="male" className="font-normal cursor-pointer">Male Only</Label>
+                <Label htmlFor="male" className="font-normal cursor-pointer">
+                  Male Only
+                </Label>
               </div>
               <div className="flex items-center space-x-2">
                 <RadioGroupItem value="female" id="female" />
-                <Label htmlFor="female" className="font-normal cursor-pointer">Female Only</Label>
+                <Label htmlFor="female" className="font-normal cursor-pointer">
+                  Female Only
+                </Label>
               </div>
               <div className="flex items-center space-x-2">
                 <RadioGroupItem value="mixed" id="mixed" />
-                <Label htmlFor="mixed" className="font-normal cursor-pointer">Mixed/Co-ed</Label>
+                <Label htmlFor="mixed" className="font-normal cursor-pointer">
+                  Mixed/Co-ed
+                </Label>
               </div>
             </RadioGroup>
           </div>
@@ -179,18 +202,22 @@ export default function FilterSheet({ filters, setFilters, onApply }: FilterShee
           {/* Location */}
           <div className="space-y-3">
             <Label className="text-base font-medium">Location</Label>
-            <Select 
-              value={localFilters.area} 
-              onValueChange={(value) => setLocalFilters(prev => ({ 
-                ...prev, 
-                area: value 
-              }))}
+            <Select
+              value={localFilters.area}
+              onValueChange={(value) =>
+                setLocalFilters((prev) => ({
+                  ...prev,
+                  area: value,
+                }))
+              }
             >
               <SelectTrigger>
                 <SelectValue placeholder="Select area" />
               </SelectTrigger>
               <SelectContent>
-                {AREAS.map(area => (
+                <SelectItem value={"all"}>All Areas</SelectItem>
+
+                {areas.map((area) => (
                   <SelectItem key={area.value} value={area.value}>
                     {area.label}
                   </SelectItem>
@@ -202,28 +229,41 @@ export default function FilterSheet({ filters, setFilters, onApply }: FilterShee
           {/* Beds per Room */}
           <div className="space-y-3">
             <Label className="text-base font-medium">Beds per Room</Label>
-            <RadioGroup 
-              value={localFilters.bedsPerRoom} 
-              onValueChange={(value) => setLocalFilters(prev => ({ 
-                ...prev, 
-                bedsPerRoom: value as BedsPerRoom | "all"
-              }))}
+            <RadioGroup
+              value={localFilters.bedsPerRoom}
+              onValueChange={(value) =>
+                setLocalFilters((prev) => ({
+                  ...prev,
+                  bedsPerRoom: value as BedsPerRoom | "all",
+                }))
+              }
             >
               <div className="flex items-center space-x-2">
                 <RadioGroupItem value="all" id="beds-all" />
-                <Label htmlFor="beds-all" className="font-normal cursor-pointer">Any</Label>
+                <Label
+                  htmlFor="beds-all"
+                  className="font-normal cursor-pointer"
+                >
+                  Any
+                </Label>
               </div>
               <div className="flex items-center space-x-2">
                 <RadioGroupItem value="single" id="single" />
-                <Label htmlFor="single" className="font-normal cursor-pointer">Single (1 bed)</Label>
+                <Label htmlFor="single" className="font-normal cursor-pointer">
+                  Single (1 bed)
+                </Label>
               </div>
               <div className="flex items-center space-x-2">
                 <RadioGroupItem value="double" id="double" />
-                <Label htmlFor="double" className="font-normal cursor-pointer">Shared (2 beds)</Label>
+                <Label htmlFor="double" className="font-normal cursor-pointer">
+                  Shared (2 beds)
+                </Label>
               </div>
               <div className="flex items-center space-x-2">
                 <RadioGroupItem value="triple" id="triple" />
-                <Label htmlFor="triple" className="font-normal cursor-pointer">Shared (3+ beds)</Label>
+                <Label htmlFor="triple" className="font-normal cursor-pointer">
+                  Shared (3+ beds)
+                </Label>
               </div>
             </RadioGroup>
           </div>
@@ -232,18 +272,21 @@ export default function FilterSheet({ filters, setFilters, onApply }: FilterShee
           <div className="space-y-3">
             <Label className="text-base font-medium">Facilities</Label>
             <div className="space-y-2">
-              {FACILITIES.map(facility => (
-                <div key={facility} className="flex items-center space-x-2">
-                  <Checkbox 
-                    id={facility}
-                    checked={localFilters.facilities.includes(facility)}
-                    onCheckedChange={() => handleFacilityToggle(facility)}
+              {/* Use Object.entries to get both the Name and the Icon Component */}
+              {Object.entries(FACILITY_MAP).map(([name]) => (
+                <div key={name} className="flex items-center space-x-3">
+                  <Checkbox
+                    id={name}
+                    checked={localFilters.facilities.includes(name as Facility)}
+                    onCheckedChange={() =>
+                      handleFacilityToggle(name as Facility)
+                    }
                   />
-                  <Label 
-                    htmlFor={facility} 
-                    className="font-normal cursor-pointer"
+                  <Label
+                    htmlFor={name}
+                    className="flex items-center gap-2 font-normal cursor-pointer"
                   >
-                    {facility}
+                    {name}
                   </Label>
                 </div>
               ))}
@@ -253,11 +296,7 @@ export default function FilterSheet({ filters, setFilters, onApply }: FilterShee
 
         {/* Footer Actions */}
         <div className="flex gap-2 pt-6 mt-6 border-t sticky bottom-0 bg-background">
-          <Button 
-            variant="outline" 
-            className="flex-1"
-            onClick={handleClearAll}
-          >
+          <Button variant="outline" className="flex-1" onClick={handleClearAll}>
             Clear All
           </Button>
           <SheetTrigger asChild>
@@ -268,5 +307,5 @@ export default function FilterSheet({ filters, setFilters, onApply }: FilterShee
         </div>
       </SheetContent>
     </Sheet>
-  )
+  );
 }

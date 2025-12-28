@@ -1,20 +1,5 @@
 export type BedsPerRoom = "single" | "double" | "triple";
-
 export type RoomType = "male" | "female" | "mixed";
-
-export interface Tenant {
-  name: string;
-  roomNumber: string;
-  startDate: string; // ISO string
-  endDate: string;   // ISO string
-}
-
-export interface Address {
-  street: string;
-  area: string;
-  city: string;
-  postalCode: string;
-}
 
 export type Facility = 
   | "WiFi" 
@@ -25,6 +10,13 @@ export type Facility =
   | "Attached Bathroom"
   | "Parking"
   | "Generator/UPS";
+
+export interface Area {
+  value: string;
+  label: string;
+}
+
+export type Areas = Area[];
 
 export interface Property {
   id: number;
@@ -58,5 +50,24 @@ export interface Property {
   updatedAt: string;
 }
 
-export type Properties = Property[];
+export interface Tenant {
+  name: string;
+  roomNumber: string;
+  startDate: string;
+  endDate: string;
+}
 
+export interface Location {
+  latitude: number;
+  longitude: number;
+}
+
+export interface Address {
+  street: string;
+  area: string;
+  city: string;
+  postalCode: string | null; // or string | null | undefined
+  location: Location;
+}
+
+export type Properties = Property[];

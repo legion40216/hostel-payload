@@ -43,8 +43,58 @@ export const MainSection = ({ searchParams }: FilterSectionProps) => {
 const MainSectionContent = ({ searchParams }: FilterSectionProps) => {
     const trpc = useTRPC();
     const { data } = useSuspenseQuery(trpc.hostels.getAll.queryOptions());
-    console.log(data);
+    
+    const hostels = data?.hostels || [];
 
+    if (hostels.length === 0) {
+      return (
+        <EmptyState
+          title="No featured hostels found"
+          subtitle="Please try again later."
+        />
+      );
+    }
+
+  const formattedHostels = hostels.map((item) => {
+    return {
+      id: item.id,
+      name: item.name,
+      address: {
+        street: item.address.street,
+        area: item.address.area,
+        city: item.address.city,
+        postalCode: item.address.postalCode ?? null,
+        location: {
+          latitude: item.address.location.latitude,
+          longitude: item.address.location.longitude
+        }
+      },
+      description: item.description,
+      thumbnail: typeof item.thumbnail === 'object' && item.thumbnail !== null 
+        ? item.thumbnail.url ?? '' 
+        : '',
+      images: item.images?.map(imgObj => 
+        typeof imgObj.image === 'object' && imgObj.image !== null
+          ? imgObj.image.url ?? ''
+          : ''
+      ) ?? [],
+      totalRooms: item.totalRooms,
+      totalBeds: item.totalBeds,
+      occupiedBeds: item.occupiedBeds,
+      availableBeds: item.availableBeds,
+      bedsPerRoom: item.bedsPerRoom as "single" | "double" | "triple",
+      roomType: item.roomType as "male" | "female" | "mixed",
+      rentPerBed: item.rentPerBed,
+      facilities: Array.from(item.facilities),
+    };
+  });
+
+  const AREAS = formattedHostels.map((hostel) => ({
+    value: hostel.address.area,
+    label: hostel.address.area
+  }));
+
+  // Component State and Handlers
   const router = useRouter();
   const clientSearchParams = useSearchParams();
   const { viewMode, setViewMode } = useViewStore();
@@ -105,6 +155,8 @@ const MainSectionContent = ({ searchParams }: FilterSectionProps) => {
   return (
     <div className="space-y-4">
       <FilterBar
+        areas={AREAS}
+
         filters={filters}
         sortBy={sortBy}
         viewMode={viewMode}
@@ -120,15 +172,15 @@ const MainSectionContent = ({ searchParams }: FilterSectionProps) => {
       />
 
       {/* Main Content Area */}
-      <div className="grid grid-cols-[1fr_auto] gap-4">
+      <div className="grid grid-cols-[1fr_minmax(30%,auto)] gap-4">
         <div className="bg-muted rounded-lg flex items-center justify-center min-h-150">
           <p className="text-muted-foreground">Map View Coming Soon</p>
         </div>
 
-        <PropertiesSidebar 
-          properties={sortedProperties} 
-          viewMode={viewMode} 
+        <PropertiesSidebar
+          viewMode={viewMode}
           sortedProperties={sortedProperties}
+          data={formattedHostels}
         />
       </div>
     </div>

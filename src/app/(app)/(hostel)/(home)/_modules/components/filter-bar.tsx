@@ -1,7 +1,7 @@
 "use client";
 import React from "react";
 import { Grid, List } from "lucide-react";
-import { sortOptions } from "@/data/data";
+
 import { FilterState } from "@/utils/filterHelpers";
 
 import {
@@ -15,6 +15,8 @@ import {
 import { Button } from "@/components/ui/button";
 import { ButtonGroup } from "@/components/ui/button-group";
 import FilterSheet from "./filter-sheet";
+import { Areas } from "@/types/types";
+import { sortOptions } from "@/data/constants";
 
 interface FilterBarProps {
   filters: FilterState;
@@ -23,6 +25,7 @@ interface FilterBarProps {
   onFilterChange: (newFilters: FilterState) => void;
   onSortChange: (value: string) => void;
   onViewChange: (mode: "grid" | "list") => void;
+  areas: Areas;
 }
 
 export default function FilterBar({
@@ -32,6 +35,7 @@ export default function FilterBar({
   onFilterChange,
   onSortChange,
   onViewChange,
+  areas,
 }: FilterBarProps) {
   return (
     <div className="flex items-center justify-between gap-2">
@@ -40,6 +44,7 @@ export default function FilterBar({
           filters={filters}
           setFilters={onFilterChange}
           onApply={() => {}}
+          areas={areas}
         />
 
         <Select value={sortBy} onValueChange={onSortChange}>

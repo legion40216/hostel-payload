@@ -138,38 +138,4 @@ export const hostelsRouter = createTRPCRouter({
         });
       }
     }),
-
-  search: baseProcedure
-    .input(
-      z.object({
-        query: z.string().min(1),
-        limit: z.number().min(1).max(100).default(10),
-      })
-    )
-    .query(async ({ ctx, input }) => {
-      try {
-        const result = await ctx.payload.find({
-          collection: "hostels",
-          where: {
-            or: [
-              { name: { contains: input.query } },
-              { description: { contains: input.query } },
-              { 'address.area': { contains: input.query } },
-            ],
-          },
-          limit: input.limit,
-        });
-
-        return {
-          hostels: result.docs,
-          totalDocs: result.totalDocs,
-        };
-      } catch (error) {
-        console.error("Error [search]:", error);
-        throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
-          message: "Failed to search hostels",
-        });
-      }
-    }),
 });

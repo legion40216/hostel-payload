@@ -2,16 +2,34 @@ import React from "react";
 import PropertyCard from "./properites-card";
 import { Property } from "@/types/types";
 
+type PropertyProps = Pick<
+  Property,
+  | "id"
+  | "name"
+  | "address"
+  | "description"
+  | "thumbnail"
+  | "images"
+  | "totalRooms"
+  | "totalBeds"
+  | "occupiedBeds"
+  | "availableBeds"
+  | "bedsPerRoom"
+  | "roomType"
+  | "rentPerBed"
+  | "facilities"
+>;
+
 interface PropertiesSidebarProps {
-  properties: Property[];
   viewMode: "grid" | "list";
   sortedProperties: Property[];
+  data: PropertyProps[];
 }
 
 export default function PropertiesSidebar({
-  properties,
   viewMode,
-  sortedProperties
+  sortedProperties,
+  data
 }: PropertiesSidebarProps) {
   return (
     <div>
@@ -27,17 +45,17 @@ export default function PropertiesSidebar({
             max-h-150 overflow-y-auto`
           }
       >
-        {properties.map((property) => (
+        {data.map((item) => (
           <PropertyCard
-            key={property.id}
-            id={property.id}
-            name={property.name}
-            thumbnail={property.thumbnail}
-            address={property.address}
-            availableBeds={property.availableBeds}
-            rentPerBed={property.rentPerBed}
-            totalBeds={property.totalBeds}
-            facilities={property.facilities}
+            key={item.id}
+            id={item.id}
+            name={item.name}
+            thumbnail={item.thumbnail}
+            address={item.address}
+            availableBeds={item.availableBeds}
+            rentPerBed={item.rentPerBed}
+            totalBeds={item.totalBeds}
+            facilities={item.facilities}
           />
         ))}
       </div>
