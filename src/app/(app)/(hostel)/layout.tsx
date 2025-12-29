@@ -6,7 +6,7 @@ import Navbar from "./_modules/components/navbar";
 export default function PublicLayout({ children }: { children: ReactNode }) {
   return (
       <div className="grid grid-rows-[min-content_1fr_min-content] space-y-4">
-        <header className="container mx-auto">
+        <header className="container mx-auto border-b py-2 px-2 md:px-0">
           <nav>
             <Navbar />
           </nav>

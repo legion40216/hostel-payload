@@ -2,34 +2,27 @@ import React from "react";
 import PropertyCard from "./properites-card";
 import { Property } from "@/types/types";
 
-type PropertyProps = Pick<
+// This type now perfectly matches what PropertyCard actually uses
+type PropertySidebarData = Pick<
   Property,
   | "id"
   | "name"
-  | "address"
-  | "description"
   | "thumbnail"
-  | "images"
-  | "totalRooms"
-  | "totalBeds"
-  | "occupiedBeds"
+  | "address"
   | "availableBeds"
-  | "bedsPerRoom"
-  | "roomType"
+  | "totalBeds"
   | "rentPerBed"
   | "facilities"
 >;
 
 interface PropertiesSidebarProps {
   viewMode: "grid" | "list";
-  sortedProperties: PropertyProps[];
-  data: PropertyProps[];
+  sortedProperties: PropertySidebarData[]; // Use the filtered/sorted lean list
 }
 
 export default function PropertiesSidebar({
   viewMode,
   sortedProperties,
-  data
 }: PropertiesSidebarProps) {
   return (
     <div>
@@ -45,7 +38,7 @@ export default function PropertiesSidebar({
             max-h-150 overflow-y-auto`
           }
       >
-        {data.map((item) => (
+        {sortedProperties.map((item) => (
           <PropertyCard
             key={item.id}
             id={item.id}

@@ -1,12 +1,18 @@
 import React from 'react'
-import PropertyOverview from './section/property-overview';
+import PropertyView from './view/property-view';
 
-export default async function page({params}: {params: Promise<{propertyId: string}>}) {
-  const resolvedParams = await params;
+import { getQueryClient, trpc } from '@/trpc/server';
+import { dehydrate, HydrationBoundary } from '@tanstack/react-query';
+
+export default async function Page({params}: {params: Promise<{propertyId: string}>}) {
+  const {propertyId} = await params;
+  
+  const queryClient = getQueryClient();
+  await queryClient.prefetchQuery(trpc.hostels.getById.queryOptions({ id: propertyId }));
   
   return (
-    <div>
-      <PropertyOverview propertyId={resolvedParams.propertyId}/>
-    </div>
-  )
+    <HydrationBoundary state={dehydrate(queryClient)}>
+      <PropertyView propertyId={propertyId}/>
+    </HydrationBoundary>
+  );
 }

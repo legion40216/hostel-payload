@@ -21,7 +21,6 @@ import EmptyState from "@/components/global-ui/empty-state";
 import { format } from "date-fns";
 
 import dynamic from 'next/dynamic';
-import { vi } from "zod/v4/locales";
 
 // Dynamically import with no SSR
 const HostelMap = dynamic(() => import("../_modules/components/hostel-map"), { 
@@ -80,6 +79,7 @@ const MainSectionContent = ({ searchParams }: FilterSectionProps) => {
         }
       },
       description: item.description,
+
       thumbnail: typeof item.thumbnail === 'object' && item.thumbnail !== null 
         ? item.thumbnail.url ?? '' 
         : '',
@@ -88,6 +88,7 @@ const MainSectionContent = ({ searchParams }: FilterSectionProps) => {
           ? imgObj.image.url ?? ''
           : ''
       ) ?? [],
+      
       totalRooms: item.totalRooms,
       totalBeds: item.totalBeds,
       occupiedBeds: item.occupiedBeds,
@@ -244,7 +245,6 @@ const MainSectionContent = ({ searchParams }: FilterSectionProps) => {
         <PropertiesSidebar
           viewMode={viewMode}
           sortedProperties={sortedProperties}
-          data={sortedProperties}
         />
       </div>
     </div>
