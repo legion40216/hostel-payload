@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Filter, X } from 'lucide-react'
 import { formatter } from '@/utils/formatters'
@@ -57,11 +57,6 @@ export default function FilterSheet({
   const [localFilters, setLocalFilters] = useState<FilterState>(filters)
   const [isOpen, setIsOpen] = useState(false)
 
-  // Sync local filters when sheet opens or when parent filters change
-  useEffect(() => {
-    setLocalFilters(filters)
-  }, [filters, isOpen])
-
   const handleFacilityToggle = (facility: Facility) => {
     setLocalFilters(prev => {
       const newFacilities = prev.facilities.includes(facility)
@@ -112,7 +107,15 @@ export default function FilterSheet({
   })()
 
   return (
-    <Sheet open={isOpen} onOpenChange={setIsOpen}>
+      <Sheet
+        open={isOpen}
+        onOpenChange={(open) => {
+          setIsOpen(open);
+          if (open) {
+            setLocalFilters(filters);
+          }
+        }}
+      >
       <SheetTrigger asChild>
         <Button variant="outline">
           <Filter className="mr-2 size-4" />
@@ -137,11 +140,7 @@ export default function FilterSheet({
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-lg font-semibold">Filters</h2>
-          <Button 
-            variant="ghost" 
-            size="icon" 
-            onClick={() => setIsOpen(false)}
-          >
+          <Button variant="ghost" size="icon" onClick={() => setIsOpen(false)}>
             <X className="size-5" />
           </Button>
         </div>
@@ -252,7 +251,10 @@ export default function FilterSheet({
             >
               <div className="flex items-center space-x-2">
                 <RadioGroupItem value="all" id="beds-all" />
-                <Label htmlFor="beds-all" className="font-normal cursor-pointer">
+                <Label
+                  htmlFor="beds-all"
+                  className="font-normal cursor-pointer"
+                >
                   Any
                 </Label>
               </div>
@@ -303,7 +305,7 @@ export default function FilterSheet({
         </div>
 
         {/* Footer Actions */}
-        <div className="flex gap-2 pt-6 mt-6 border-t sticky bottom-0 bg-background">
+        <div className="flex gap-2 pt-6 mt-6 border-t bg-background">
           <Button variant="outline" className="flex-1" onClick={handleClearAll}>
             Clear All
           </Button>
@@ -313,5 +315,5 @@ export default function FilterSheet({
         </div>
       </SheetContent>
     </Sheet>
-  )
+  );
 }

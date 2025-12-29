@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useMemo, useEffect } from "react";
+import React, { useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { useViewStore } from "@/hooks/view-store";
 
@@ -53,19 +53,21 @@ const MainSectionContent = ({ searchParams }: FilterSectionProps) => {
   const trpc = useTRPC();
   const { data } = useSuspenseQuery(trpc.hostels.getAll.queryOptions());
   
-  const hostels = data?.hostels || [];
+  // ALL HOOKS MUST BE CALLED BEFORE ANY CONDITIONAL RETURNS
+  const router = useRouter();
+  const { viewMode, setViewMode } = useViewStore();
+  
+  // Initialize state directly from URL params (no useEffect needed)
+  const [sortBy, setSortBy] = useState(searchParams.sort || "newest");
+  const [filters, setFilters] = useState<FilterState>(() => 
+    searchParamsToFilters(searchParams)
+  );
 
-  if (hostels.length === 0) {
-    return (
-      <EmptyState
-        title="No featured hostels found"
-        subtitle="Please try again later."
-      />
-    );
-  }
+  // Memoize hostels to prevent dependency issues
+  const hostels = useMemo(() => data?.hostels || [], [data?.hostels]);
 
-  const formattedHostels = hostels.map((item) => {
-    return {
+  const formattedHostels = useMemo(() => {
+    return hostels.map((item) => ({
       id: item.id,
       name: item.name,
       address: {
@@ -99,30 +101,15 @@ const MainSectionContent = ({ searchParams }: FilterSectionProps) => {
       facilities: Array.from(item.facilities || []),
       createdAt: format(new Date(item.createdAt), "yyyy-MM-dd'T'HH:mm:ss.SSSxxx"),
       updatedAt: format(new Date(item.updatedAt), "yyyy-MM-dd'T'HH:mm:ss.SSSxxx"),
-    };
-  });
+    }));
+  }, [hostels]);
 
-  const AREAS = formattedHostels.map((hostel) => ({
-    value: hostel.address.area,
-    label: hostel.address.area
-  }));
-
-  // Component State and Handlers
-  const router = useRouter();
-  const { viewMode, setViewMode } = useViewStore();
-
-  // Initialize state from URL params
-  const [sortBy, setSortBy] = useState(searchParams.sort || "newest");
-  const [filters, setFilters] = useState<FilterState>(
-    searchParamsToFilters(searchParams)
-  );
-
-  // Sync state with URL changes
-  useEffect(() => {
-    const newFilters = searchParamsToFilters(searchParams);
-    setFilters(newFilters);
-    setSortBy(searchParams.sort || "newest");
-  }, [searchParams]);
+  const AREAS = useMemo(() => {
+    return formattedHostels.map((hostel) => ({
+      value: hostel.address.area,
+      label: hostel.address.area
+    }));
+  }, [formattedHostels]);
 
   const updateURL = (newFilters: FilterState, newSort: string) => {
     const params = new URLSearchParams();
@@ -215,6 +202,16 @@ const MainSectionContent = ({ searchParams }: FilterSectionProps) => {
     }
   }, [filteredProperties, sortBy]);
 
+  // NOW we can do conditional rendering after all hooks are called
+  if (hostels.length === 0) {
+    return (
+      <EmptyState
+        title="No featured hostels found"
+        subtitle="Please try again later."
+      />
+    );
+  }
+
   return (
     <div className="space-y-4">
       <FilterBar
@@ -228,7 +225,7 @@ const MainSectionContent = ({ searchParams }: FilterSectionProps) => {
       />
 
       {/* Main Content Area */}
-      <div className="grid grid-cols-[1fr_minmax(30%,auto)] gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-[1fr_minmax(30%,auto)] gap-4">
         <div className={`${viewMode === "grid" ? "aspect-square" : ""} 
           relative bg-muted rounded-lg overflow-hidden isolate`}
         >
@@ -240,7 +237,6 @@ const MainSectionContent = ({ searchParams }: FilterSectionProps) => {
             }}
           />
         </div>
-
 
         <PropertiesSidebar
           viewMode={viewMode}

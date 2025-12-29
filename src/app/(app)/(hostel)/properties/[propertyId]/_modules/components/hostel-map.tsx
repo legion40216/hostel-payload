@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useRef } from 'react';
 import { Property } from '@/types/types';
+import type { Map, Marker } from 'leaflet';
 
 type PropertyProps = Pick<
   Property,
@@ -31,17 +32,19 @@ export default function HostelMap({
   selectedProperty,
   onPropertySelect 
 }: HostelMapProps) {
-  const mapRef = useRef<any>(null);
+  const mapRef = useRef<Map | null>(null);
   const mapContainerRef = useRef<HTMLDivElement>(null);
-  const markersRef = useRef<any[]>([]);
+  const markersRef = useRef<Marker[]>([]);
+  const isInitializedRef = useRef(false);
 
-  // 1. Initialize Map
+  // 1. Initialize Map ONCE
   useEffect(() => {
     const initMap = async () => {
-      if (!mapContainerRef.current || mapRef.current) return;
+      if (!mapContainerRef.current || isInitializedRef.current) return;
 
       const L = (await import('leaflet')).default;
-      // Add Leaflet CSS via CDN link to avoid TypeScript module error for CSS imports
+      
+      // Add Leaflet CSS via CDN link
       if (typeof document !== 'undefined' && !document.getElementById('leaflet-css')) {
         const link = document.createElement('link');
         link.id = 'leaflet-css';
@@ -51,20 +54,16 @@ export default function HostelMap({
       }
       
       // Fix marker icon paths
-      delete (L.Icon.Default.prototype as any)._getIconUrl;
+      delete (L.Icon.Default.prototype as unknown as { _getIconUrl?: () => string })._getIconUrl;
       L.Icon.Default.mergeOptions({
         iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon-2x.png',
         iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon.png',
         shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png',
       });
 
-      let center: [number, number] = [25.3960, 68.3578];
-      let zoom = 13;
-
-      if (properties.length > 0 && properties[0].address.location) {
-        const { latitude, longitude } = properties[0].address.location;
-        center = [latitude, longitude];
-      }
+      // Default center on Hyderabad
+      const center: [number, number] = [25.3960, 68.3578];
+      const zoom = 13;
 
       const map = L.map(mapContainerRef.current).setView(center, zoom);
 
@@ -73,11 +72,12 @@ export default function HostelMap({
       }).addTo(map);
 
       mapRef.current = map;
+      isInitializedRef.current = true;
 
-      // Recalculate size to fix centering in aspect-ratio containers
+      // Recalculate size to fix centering
       setTimeout(() => {
         map.invalidateSize();
-      }, 200);
+      }, 100);
     };
 
     initMap();
@@ -86,14 +86,15 @@ export default function HostelMap({
       if (mapRef.current) {
         mapRef.current.remove();
         mapRef.current = null;
+        isInitializedRef.current = false;
       }
     };
-  }, []); 
+  }, []); // Empty dependency - only run once
 
-  // 2. Update Markers and Camera
+  // 2. Update Markers when properties change
   useEffect(() => {
     const updateMarkers = async () => {
-      if (!mapRef.current) return;
+      if (!mapRef.current || !isInitializedRef.current) return;
 
       const L = (await import('leaflet')).default;
 
@@ -103,19 +104,23 @@ export default function HostelMap({
 
       if (properties.length === 0) return;
 
+      // Add markers for each property
       properties.forEach((property) => {
-        if (!property.address.location) return;
+        if (!property.address.location) {
+          console.warn(`Property "${property.name}" missing location data`);
+          return;
+        }
 
         const { latitude, longitude } = property.address.location;
         
-        // Use default marker (removed custom L.divIcon)
         const marker = L.marker([latitude, longitude]).addTo(mapRef.current!);
 
         marker.bindPopup(`
-          <div class="p-1 min-w-[120px]">
+          <div class="p-2 min-w-[150px]">
             <h3 class="font-bold text-sm leading-tight">${property.name}</h3>
-            <p class="text-xs text-gray-600 mt-1">${property.address.area}</p>
-            <p class="font-semibold text-xs mt-1 text-blue-600">₨${property.rentPerBed}/mo</p>
+            <p class="text-xs text-gray-600 mt-1">${property.address.street}, ${property.address.area}</p>
+            <p class="font-semibold text-sm mt-1 text-blue-600">₨${property.rentPerBed}/month</p>
+            <p class="text-xs text-gray-500 mt-1">${property.availableBeds} beds available</p>
           </div>
         `);
 
@@ -126,19 +131,22 @@ export default function HostelMap({
         markersRef.current.push(marker);
       });
 
-      // Camera logic
+      // Adjust map view based on markers
       if (markersRef.current.length > 1) {
         const group = L.featureGroup(markersRef.current);
-        mapRef.current.invalidateSize();
-        mapRef.current.fitBounds(group.getBounds(), { padding: [40, 40] });
+        mapRef.current.fitBounds(group.getBounds(), { padding: [50, 50] });
       } else if (markersRef.current.length === 1 && properties[0].address.location) {
         const { latitude, longitude } = properties[0].address.location;
-        mapRef.current.invalidateSize(); 
-        mapRef.current.setView([latitude, longitude], 16); // Slightly closer zoom for single property
+        mapRef.current.setView([latitude, longitude], 15);
       }
     };
 
-    updateMarkers();
+    // Small delay to ensure map is fully initialized
+    const timeoutId = setTimeout(() => {
+      updateMarkers();
+    }, 150);
+
+    return () => clearTimeout(timeoutId);
   }, [properties, selectedProperty, onPropertySelect]);
 
   return (

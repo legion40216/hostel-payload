@@ -39,6 +39,24 @@ export default function PropertyOverview({ property }: PropertyOverviewProps) {
     mixed: "Mixed/Co-ed",
   }[property.roomType];
 
+  // Transform property to match HostelMap's expected type
+  const mapProperty = {
+    id: property.id,
+    name: property.name,
+    address: property.address,
+    description: property.description,
+    thumbnail: property.thumbnail,
+    images: property.images,
+    totalRooms: property.totalRooms,
+    totalBeds: property.totalBeds,
+    occupiedBeds: property.occupiedBeds,
+    availableBeds: property.availableBeds,
+    bedsPerRoom: property.bedsPerRoom,
+    roomType: property.roomType,
+    rentPerBed: property.rentPerBed,
+    facilities: property.facilities,
+  };
+
   return (
     <div className="space-y-8">
       {/* HERO IMAGE */}
@@ -260,8 +278,8 @@ export default function PropertyOverview({ property }: PropertyOverviewProps) {
             {/* The wrapper handles the aspect ratio */}
             <div className="relative bg-muted rounded-lg overflow-hidden isolate aspect-square w-full border">
               <HostelMap
-                properties={[property as any]}
-                selectedProperty={property as any}
+                properties={[mapProperty]}
+                selectedProperty={mapProperty}
                 onPropertySelect={(selectedProp) => {
                   console.log("Property clicked:", selectedProp);
                 }}

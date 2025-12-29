@@ -1,6 +1,12 @@
 "use client";
 import { useEffect, useRef } from 'react';
 import { Property } from '@/types/types';
+
+import type {
+  Map as LeafletMap,
+  Marker as LeafletMarker,
+} from 'leaflet';
+
 type PropertyProps = Pick<
   Property,
   | "id"
@@ -30,9 +36,9 @@ export default function HostelMap({
   selectedProperty,
   onPropertySelect 
 }: HostelMapProps) {
-  const mapRef = useRef<any>(null);
+  const mapRef = useRef<LeafletMap | null>(null);
   const mapContainerRef = useRef<HTMLDivElement>(null);
-  const markersRef = useRef<any[]>([]);
+  const markersRef = useRef<LeafletMarker[]>([]);
 
   useEffect(() => {
     // Dynamically import Leaflet only on client side
@@ -42,7 +48,9 @@ export default function HostelMap({
       const L = (await import('leaflet')).default;
       
       // Fix icon paths
-      delete (L.Icon.Default.prototype as any)._getIconUrl;
+      delete (L.Icon.Default.prototype as unknown as {
+        _getIconUrl?: string;
+      })._getIconUrl;
       L.Icon.Default.mergeOptions({
         iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon-2x.png',
         iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon.png',
