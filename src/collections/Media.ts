@@ -3,13 +3,13 @@ import type { CollectionConfig } from 'payload'
 export const Media: CollectionConfig = {
   slug: 'media',
   admin: {
-    useAsTitle: 'filename',
+    useAsTitle: 'alt',
   },
   access: {
     read: () => true,
   },
   upload: {
-    staticDir: 'media',
+    disableLocalStorage: true, // Critical for Vercel/serverless
     imageSizes: [
       {
         name: 'thumbnail',
@@ -20,13 +20,7 @@ export const Media: CollectionConfig = {
       {
         name: 'card',
         width: 768,
-        height: 576,
-        position: 'centre',
-      },
-      {
-        name: 'tablet',
-        width: 1024,
-        height: undefined,
+        height: 1024,
         position: 'centre',
       },
     ],
@@ -38,5 +32,6 @@ export const Media: CollectionConfig = {
       type: 'text',
       required: true,
     },
+    // Optional: Add caption, credits, etc.
   ],
 }
