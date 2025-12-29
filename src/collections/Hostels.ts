@@ -40,7 +40,7 @@ export const Hostels: CollectionConfig = {
         },
         {
           name: "area",
-          type: "text", // Free text input - not predefined
+          type: "text",
           required: true,
           label: "Area/Neighborhood",
           admin: {
@@ -64,7 +64,6 @@ export const Hostels: CollectionConfig = {
             placeholder: "e.g., 71000",
           },
         },
-        // Geolocation for Leaflet
         {
           name: "location",
           type: "group",
@@ -230,34 +229,18 @@ export const Hostels: CollectionConfig = {
       },
     },
 
-    // Tenants
-    {
-      name: "tenants",
-      type: "array",
-      label: "Current Tenants",
-      fields: [
-        {
-          name: "name",
-          type: "text",
-          required: true,
-        },
-        {
-          name: "roomNumber",
-          type: "text",
-          required: true,
-        },
-        {
-          name: "startDate",
-          type: "date",
-          required: true,
-        },
-        {
-          name: "endDate",
-          type: "date",
-          required: true,
-        },
-      ],
-    },
+  // Updated currentTenants field
+  {
+    name: 'currentTenants',
+    type: 'join', 
+    collection: 'tenants',
+    on: 'hostel', 
+    admin: {
+      // readOnly: true, // <--- REMOVE THIS LINE
+      description: "List of tenants currently assigned to this hostel.",
+      defaultColumns: ['name', 'cnic', 'status'], // Optional: choose which columns to show in the list
+    }
+  },
   ],
   hooks: {
     beforeChange: [

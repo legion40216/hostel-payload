@@ -70,16 +70,24 @@ export interface Config {
     users: User;
     media: Media;
     hostels: Hostel;
+    tenants: Tenant;
+    payments: Payment;
     'payload-kv': PayloadKv;
     'payload-locked-documents': PayloadLockedDocument;
     'payload-preferences': PayloadPreference;
     'payload-migrations': PayloadMigration;
   };
-  collectionsJoins: {};
+  collectionsJoins: {
+    hostels: {
+      currentTenants: 'tenants';
+    };
+  };
   collectionsSelect: {
     users: UsersSelect<false> | UsersSelect<true>;
     media: MediaSelect<false> | MediaSelect<true>;
     hostels: HostelsSelect<false> | HostelsSelect<true>;
+    tenants: TenantsSelect<false> | TenantsSelect<true>;
+    payments: PaymentsSelect<false> | PaymentsSelect<true>;
     'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
     'payload-preferences': PayloadPreferencesSelect<false> | PayloadPreferencesSelect<true>;
@@ -226,15 +234,77 @@ export interface Hostel {
     | null;
   manager: string;
   contactNumber: string;
-  tenants?:
-    | {
-        name: string;
-        roomNumber: string;
-        startDate: string;
-        endDate: string;
-        id?: string | null;
-      }[]
-    | null;
+  /**
+   * List of tenants currently assigned to this hostel.
+   */
+  currentTenants?: {
+    docs?: (number | Tenant)[];
+    hasNextPage?: boolean;
+    totalDocs?: number;
+  };
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "tenants".
+ */
+export interface Tenant {
+  id: number;
+  name: string;
+  cnic: string;
+  contactNumber: string;
+  email?: string | null;
+  hostel: number | Hostel;
+  emergencyContact?: {
+    name?: string | null;
+    relationship?: string | null;
+    phone?: string | null;
+  };
+  occupation: 'student' | 'working' | 'business' | 'other';
+  occupationDetails?: string | null;
+  status: 'active' | 'inactive';
+  cnicPhoto?: (number | null) | Media;
+  profilePhoto?: (number | null) | Media;
+  notes?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "payments".
+ */
+export interface Payment {
+  id: number;
+  /**
+   * Auto-generated on creation
+   */
+  paymentId: string;
+  tenant: number | Tenant;
+  hostel: number | Hostel;
+  amount: number;
+  paymentType: 'rent' | 'deposit' | 'late_fee' | 'maintenance' | 'utility' | 'other';
+  /**
+   * Which month is this payment for? (For rent payments)
+   */
+  forMonth?: string | null;
+  status: 'pending' | 'paid' | 'overdue' | 'partial' | 'refunded';
+  dueDate: string;
+  /**
+   * Actual date when payment was received
+   */
+  paymentDate?: string | null;
+  paymentMethod?: ('cash' | 'bank_transfer' | 'jazzcash' | 'easypaisa' | 'cheque' | 'online') | null;
+  transactionReference?: string | null;
+  receiptNumber?: string | null;
+  /**
+   * Upload receipt or payment proof
+   */
+  receiptDocument?: (number | null) | Media;
+  lateFee?: number | null;
+  discount?: number | null;
+  notes?: string | null;
+  collectedBy?: string | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -273,6 +343,14 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'hostels';
         value: number | Hostel;
+      } | null)
+    | ({
+        relationTo: 'tenants';
+        value: number | Tenant;
+      } | null)
+    | ({
+        relationTo: 'payments';
+        value: number | Payment;
       } | null);
   globalSlug?: string | null;
   user: {
@@ -419,15 +497,58 @@ export interface HostelsSelect<T extends boolean = true> {
   facilities?: T;
   manager?: T;
   contactNumber?: T;
-  tenants?:
+  currentTenants?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "tenants_select".
+ */
+export interface TenantsSelect<T extends boolean = true> {
+  name?: T;
+  cnic?: T;
+  contactNumber?: T;
+  email?: T;
+  hostel?: T;
+  emergencyContact?:
     | T
     | {
         name?: T;
-        roomNumber?: T;
-        startDate?: T;
-        endDate?: T;
-        id?: T;
+        relationship?: T;
+        phone?: T;
       };
+  occupation?: T;
+  occupationDetails?: T;
+  status?: T;
+  cnicPhoto?: T;
+  profilePhoto?: T;
+  notes?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "payments_select".
+ */
+export interface PaymentsSelect<T extends boolean = true> {
+  paymentId?: T;
+  tenant?: T;
+  hostel?: T;
+  amount?: T;
+  paymentType?: T;
+  forMonth?: T;
+  status?: T;
+  dueDate?: T;
+  paymentDate?: T;
+  paymentMethod?: T;
+  transactionReference?: T;
+  receiptNumber?: T;
+  receiptDocument?: T;
+  lateFee?: T;
+  discount?: T;
+  notes?: T;
+  collectedBy?: T;
   updatedAt?: T;
   createdAt?: T;
 }

@@ -9,6 +9,8 @@ import { cloudinaryStorage } from "@pemol/payload-cloudinary"; // Add this impor
 import { Users } from "./collections/Users";
 import { Media } from "./collections/Media";
 import { Hostels } from "./collections/Hostels";
+import { Tenants } from "./collections/Tenants";
+import { Payments } from "./collections/Payments";
 
 const filename = fileURLToPath(import.meta.url);
 const dirname = path.dirname(filename);
@@ -20,7 +22,7 @@ export default buildConfig({
       baseDir: path.resolve(dirname),
     },
   },
-  collections: [Users, Media, Hostels],
+  collections: [Users, Media, Hostels, Tenants, Payments],
   editor: lexicalEditor(),
   secret: process.env.PAYLOAD_SECRET || "",
   typescript: {

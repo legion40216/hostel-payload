@@ -206,7 +206,7 @@ const MainSectionContent = ({ searchParams }: FilterSectionProps) => {
   if (hostels.length === 0) {
     return (
       <EmptyState
-        title="No featured hostels found"
+        title="No hostels found"
         subtitle="Please try again later."
       />
     );
