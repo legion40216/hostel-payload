@@ -60,7 +60,7 @@ export default function PropertyOverview({ property }: PropertyOverviewProps) {
   return (
     <div className="space-y-8">
       {/* HERO IMAGE */}
-      <div className="relative aspect-video h-[60vh] w-full overflow-hidden rounded-xl">
+      <div className="relative aspect-video w-full overflow-hidden rounded-xl">
         <Image
           src={
             property.images[0] || property.thumbnail || "/placeholder-image.png"

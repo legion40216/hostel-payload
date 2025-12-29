@@ -138,7 +138,7 @@ export default function FilterSheet({
         </SheetDescription>
 
         {/* Header */}
-        <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center justify-between">
           <h2 className="text-lg font-semibold">Filters</h2>
           <Button variant="ghost" size="icon" onClick={() => setIsOpen(false)}>
             <X className="size-5" />
