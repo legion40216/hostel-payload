@@ -4,8 +4,7 @@ import path from "path";
 import { buildConfig } from "payload";
 import { fileURLToPath } from "url";
 import sharp from "sharp";
-import { cloudStorage } from "@payloadcms/plugin-cloud-storage";
-import { cloudinaryAdapter } from "@payloadcms/plugin-cloud-storage/cloudinary";
+import { cloudinaryStorage } from "@pemol/payload-cloudinary"; // Add this import
 
 import { Users } from "./collections/Users";
 import { Media } from "./collections/Media";
@@ -33,18 +32,16 @@ export default buildConfig({
     },
   }),
   sharp,
-  plugins: [
-    cloudStorage({
+plugins: [
+    cloudinaryStorage({
+      config: {
+        // Adding || "" tells TypeScript: "If the env is missing, use an empty string"
+        cloud_name: process.env.CLOUDINARY_CLOUD_NAME || "",
+        api_key: process.env.CLOUDINARY_API_KEY || "",
+        api_secret: process.env.CLOUDINARY_API_SECRET || "",
+      },
       collections: {
-        media: {
-          adapter: cloudinaryAdapter({
-            config: {
-              cloud_name: process.env.CLOUDINARY_CLOUD_NAME || "",
-              api_key: process.env.CLOUDINARY_API_KEY || "",
-              api_secret: process.env.CLOUDINARY_API_SECRET || "",
-            },
-          }),
-        },
+        media: true, 
       },
     }),
   ],
