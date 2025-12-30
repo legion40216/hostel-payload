@@ -30,10 +30,6 @@ export default function GalleryModal({
     setSelectedIndex(initialIndex);
   }, [initialIndex]);
 
-  if (!images.length) return null;
-
-  const selectedImage = images[selectedIndex];
-
   const goToPrevious = () => {
     setSelectedIndex(selectedIndex === 0 ? images.length - 1 : selectedIndex - 1);
   };
@@ -42,7 +38,7 @@ export default function GalleryModal({
     setSelectedIndex(selectedIndex === images.length - 1 ? 0 : selectedIndex + 1);
   };
 
-  // Keyboard navigation
+  // Keyboard navigation - must be called unconditionally
   React.useEffect(() => {
     if (!isOpen) return;
 
@@ -55,6 +51,11 @@ export default function GalleryModal({
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [isOpen, selectedIndex]);
+
+  // Early return AFTER all hooks
+  if (!images.length) return null;
+
+  const selectedImage = images[selectedIndex];
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>

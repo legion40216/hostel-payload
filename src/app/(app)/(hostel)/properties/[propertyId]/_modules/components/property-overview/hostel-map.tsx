@@ -116,7 +116,7 @@ export default function HostelMap({
         const marker = L.marker([latitude, longitude]).addTo(mapRef.current!);
 
         marker.bindPopup(`
-          <div class="p-2 min-w-[150px]">
+          <div class="p-2 min-w-37.5">
             <h3 class="font-bold text-sm leading-tight">${property.name}</h3>
             <p class="text-xs text-gray-600 mt-1">${property.address.street}, ${property.address.area}</p>
             <p class="font-semibold text-sm mt-1 text-blue-600">₨${property.rentPerBed}/month</p>
