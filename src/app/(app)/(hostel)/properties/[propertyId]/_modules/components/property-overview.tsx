@@ -1,7 +1,7 @@
 "use client";
-import React from "react";
+import React, { useState } from "react";
 import Image from "next/image";
-import { MapPin, Phone, Calendar } from "lucide-react";
+import { MapPin, Phone, Calendar, Maximize2 } from "lucide-react";
 import { formatter } from "@/utils/formatters";
 
 import { Button } from "@/components/ui/button";
@@ -10,9 +10,12 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Property } from "@/types/types";
 
 import dynamic from "next/dynamic";
+import GalleryModal from "./property-overview/gallery-modal";
+
+
 
 // Dynamically import with no SSR
-const HostelMap = dynamic(() => import("../components/hostel-map"), {
+const HostelMap = dynamic(() => import("./property-overview/hostel-map"), {
   ssr: false,
   loading: () => (
     <div className="w-full h-full flex items-center justify-center">
@@ -28,6 +31,10 @@ interface PropertyOverviewProps {
 }
 
 export default function PropertyOverview({ property }: PropertyOverviewProps) {
+  // Modal state
+  const [isGalleryOpen, setIsGalleryOpen] = useState(false);
+  const [selectedImageIndex, setSelectedImageIndex] = useState(0);
+
   const occupancyRate = Math.round(
     (property.occupiedBeds / property.totalBeds) * 100
   );
@@ -57,19 +64,35 @@ export default function PropertyOverview({ property }: PropertyOverviewProps) {
     facilities: property.facilities,
   };
 
+  const openGallery = (index: number) => {
+    setSelectedImageIndex(index);
+    setIsGalleryOpen(true);
+  };
+
   return (
     <div className="space-y-8">
       {/* HERO IMAGE */}
-      <div className="relative aspect-video w-full overflow-hidden rounded-xl">
+      <div 
+        className="relative aspect-video w-full overflow-hidden rounded-xl group cursor-pointer"
+        onClick={() => openGallery(0)}
+      >
         <Image
           src={
             property.images[0] || property.thumbnail || "/placeholder-image.png"
           }
           alt={property.name}
           fill
-          className="object-cover"
+          className="object-cover transition-transform group-hover:scale-105"
           priority
         />
+        {/* Overlay with expand icon */}
+        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors flex items-center justify-center">
+          <div className="opacity-0 group-hover:opacity-100 transition-opacity">
+            <div className="bg-white/90 p-3 rounded-full">
+              <Maximize2 className="size-6" />
+            </div>
+          </div>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-[1fr_30%] gap-8">
@@ -211,17 +234,22 @@ export default function PropertyOverview({ property }: PropertyOverviewProps) {
               <h3 className="font-semibold text-lg mb-3">Image Gallery</h3>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 {property.images.map((imgSrc, imgIndex) => (
-                  <div
+                  <button
                     key={imgIndex}
-                    className="relative aspect-square w-full overflow-hidden rounded-lg border"
+                    onClick={() => openGallery(imgIndex)}
+                    className="relative aspect-square w-full overflow-hidden rounded-lg border
+                               group cursor-pointer hover:border-gray-400 transition-all
+                               focus-visible:outline-none focus-visible:ring-2 
+                               focus-visible:ring-ring focus-visible:ring-offset-2"
                   >
                     <Image
                       src={imgSrc || "/placeholder-image.png"}
                       alt={`${property.name} - Image ${imgIndex + 1}`}
                       fill
-                      className="object-cover hover:scale-105 transition-transform"
+                      className="object-cover group-hover:scale-105 transition-transform"
                     />
-                  </div>
+                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors" />
+                  </button>
                 ))}
               </div>
             </div>
@@ -229,9 +257,9 @@ export default function PropertyOverview({ property }: PropertyOverviewProps) {
         </div>
 
         {/* SIDEBAR - MANAGEMENT INFO */}
-        <div className="space-y-6 ">
+        <div className="space-y-6">
           {/* Contact Card */}
-          <div className="border rounded-xl p-6 space-y-4  bg-white">
+          <div className="border rounded-xl p-6 space-y-4 bg-white">
             {/* Manager Info */}
             <div className="space-y-2">
               <p className="text-sm text-muted-foreground">Managed By</p>
@@ -272,10 +300,9 @@ export default function PropertyOverview({ property }: PropertyOverviewProps) {
             </div>
           </div>
 
-          {/* Map - Shows only this property */}
+          {/* Map */}
           <div className="space-y-2">
             <p className="text-sm font-medium">Location</p>
-            {/* The wrapper handles the aspect ratio */}
             <div className="relative bg-muted rounded-lg overflow-hidden isolate aspect-square w-full border">
               <HostelMap
                 properties={[mapProperty]}
@@ -288,6 +315,15 @@ export default function PropertyOverview({ property }: PropertyOverviewProps) {
           </div>
         </div>
       </div>
+
+      {/* Gallery Modal */}
+      <GalleryModal
+        images={property.images}
+        propertyName={property.name}
+        isOpen={isGalleryOpen}
+        onClose={() => setIsGalleryOpen(false)}
+        initialIndex={selectedImageIndex}
+      />
     </div>
   );
 }

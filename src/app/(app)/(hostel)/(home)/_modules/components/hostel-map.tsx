@@ -65,12 +65,21 @@ export default function HostelMap({
       const center: [number, number] = [25.3960, 68.3578];
       const zoom = 13;
 
-      const map = L.map(mapContainerRef.current).setView(center, zoom);
+   const map = L.map(mapContainerRef.current, {
+        dragging: false,
+        touchZoom: false,
+        scrollWheelZoom: false,
+        doubleClickZoom: false,
+        boxZoom: false,
+        keyboard: false,
+        zoomControl: true
+      }).setView(center, zoom);
 
       L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '© OpenStreetMap contributors',
       }).addTo(map);
 
+      // Store map instance
       mapRef.current = map;
       isInitializedRef.current = true;
 
