@@ -32,7 +32,7 @@ export default function PropertiesSidebar({
       </div>
 
       <div className={`grid gap-4 ${ viewMode === "grid"
-            ? "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3"
+            ? "grid-cols-1 md:grid-cols-2 lg:grid-cols-3"
             : "grid-cols-1"
           } 
             max-h-150 overflow-y-auto`

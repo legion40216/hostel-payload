@@ -225,9 +225,9 @@ const MainSectionContent = ({ searchParams }: FilterSectionProps) => {
       />
 
       {/* Main Content Area */}
-      <div className="grid grid-cols-1 md:grid-cols-[1fr_minmax(30%,auto)] gap-4">
-        <div className={`${viewMode === "grid" ? "aspect-square" : ""} 
-          relative bg-muted rounded-lg overflow-hidden isolate order-2 md:order-1 aspect-square md:aspect-auto`}
+      <div className="grid grid-cols-1 md:grid-cols-[minmax(30%,1fr)_minmax(30%,auto)] gap-4">
+        <div className={` ${viewMode === "grid" ? "aspect-square" : "aspect-auto"} 
+          relative bg-muted rounded-lg overflow-hidden isolate order-2 md:order-1 `}
         >
           <HostelMap 
             properties={sortedProperties} 
