@@ -3,14 +3,14 @@
 // ============================================
 
 import { SearchParamsValues } from "@/schemas";
-import { Facility } from "@/types/types";
+import { BedsPerRoom, Facility, RoomType } from "@/types/types";
 
 export interface FilterState {
   priceRange: [number, number];
   facilities: Facility[];
-  roomType: "all" | "male" | "female" | "mixed";
+  roomType: RoomType | "all";
   area: string;
-  bedsPerRoom: "all" | "single" | "double" | "triple";
+  bedsPerRoom: BedsPerRoom | "all";
 }
 
 // Convert URL params to FilterState

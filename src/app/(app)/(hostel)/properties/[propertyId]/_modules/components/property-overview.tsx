@@ -3,16 +3,19 @@ import React, { useState } from "react";
 import Image from "next/image";
 import { MapPin, Phone, Calendar, Maximize2 } from "lucide-react";
 import { formatter } from "@/utils/formatters";
+import { Property } from "@/types/types";
+import dynamic from "next/dynamic";
 
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Property } from "@/types/types";
-
-import dynamic from "next/dynamic";
 import GalleryModal from "./property-overview/gallery-modal";
 
-
+import { 
+  Tabs, 
+  TabsContent, 
+  TabsList, 
+  TabsTrigger 
+} from "@/components/ui/tabs";
 
 // Dynamically import with no SSR
 const HostelMap = dynamic(() => import("./property-overview/hostel-map"), {
@@ -95,7 +98,9 @@ export default function PropertyOverview({ property }: PropertyOverviewProps) {
         </div>
       </div>
 
+      {/* CONTENT */}
       <div className="grid grid-cols-1 lg:grid-cols-[1fr_30%] gap-8">
+        {/* LEFT CONTENT */}
         <div className="space-y-8">
           {/* TITLE & ADDRESS */}
           <div className="space-y-4">
@@ -316,7 +321,7 @@ export default function PropertyOverview({ property }: PropertyOverviewProps) {
         </div>
       </div>
 
-      {/* Gallery Modal */}
+      {/* GALLERY MODAL */}
       <GalleryModal
         images={property.images}
         propertyName={property.name}

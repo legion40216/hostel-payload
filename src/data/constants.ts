@@ -1,3 +1,5 @@
+import { Wifi, Wind, Bath, UtensilsCrossed, Shirt, Car, ShieldCheck, Zap } from 'lucide-react';
+
 export const sortOptions = [
   { label: "Newest", value: "newest" },
   { label: "Oldest", value: "oldest" },
@@ -5,9 +7,10 @@ export const sortOptions = [
   { label: "Price: High to Low", value: "price_high_low" },
 ] as const;
 
-import { Wifi, Wind, Bath, UtensilsCrossed, Shirt, Car, ShieldCheck, Zap } from 'lucide-react';
+export const bedsPerRoomOptions = ["single", "double", "triple"] as const;
+export const roomTypeOptions = ["male", "female", "mixed"] as const;
 
-export const FACILITY_MAP: Record<string, React.ElementType> = {
+export const FACILITY_MAP = {
   "WiFi": Wifi,
   "AC": Wind,
   "Attached Bathroom": Bath,
@@ -16,7 +19,7 @@ export const FACILITY_MAP: Record<string, React.ElementType> = {
   "Parking": Car,
   "24/7 Security": ShieldCheck,
   "Generator/UPS": Zap,
-};
+} as const;
 
-// Create a simple array of the names so your .map() still works easily
-export const FACILITY_NAMES = Object.keys(FACILITY_MAP);
+export type FacilityName = keyof typeof FACILITY_MAP;
+export const FACILITY_NAMES = Object.keys(FACILITY_MAP) as FacilityName[];

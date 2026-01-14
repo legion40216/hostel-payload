@@ -3,6 +3,8 @@ import React from "react";
 import { Grid, List } from "lucide-react";
 
 import { FilterState } from "@/utils/filterHelpers";
+import { Areas, SortOption } from "@/types/types";
+import { sortOptions } from "@/data/constants";
 
 import {
   Select,
@@ -15,15 +17,13 @@ import {
 import { Button } from "@/components/ui/button";
 import { ButtonGroup } from "@/components/ui/button-group";
 import FilterSheet from "./filter-sheet";
-import { Areas } from "@/types/types";
-import { sortOptions } from "@/data/constants";
 
 interface FilterBarProps {
   filters: FilterState;
-  sortBy: string;
+  sortBy: SortOption;
   viewMode: "grid" | "list";
   onFilterChange: (newFilters: FilterState) => void;
-  onSortChange: (value: string) => void;
+  onSortChange: (value: SortOption) => void;
   onViewChange: (mode: "grid" | "list") => void;
   areas: Areas;
 }

@@ -1,5 +1,8 @@
-export type BedsPerRoom = "single" | "double" | "triple";
-export type RoomType = "male" | "female" | "mixed";
+import { bedsPerRoomOptions, roomTypeOptions, sortOptions } from "@/data/constants";
+
+export type BedsPerRoom = typeof bedsPerRoomOptions[number];
+export type RoomType = typeof roomTypeOptions[number];
+export type SortOption = typeof sortOptions[number]['value'];
 
 export type Facility = 
   | "WiFi" 

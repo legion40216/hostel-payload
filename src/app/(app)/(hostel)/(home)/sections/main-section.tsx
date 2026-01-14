@@ -1,9 +1,10 @@
 "use client";
 import React, { useState, useMemo } from "react";
+
 import { useRouter } from "next/navigation";
 import { useViewStore } from "@/hooks/view-store";
-
 import { SearchParamsValues } from "@/schemas";
+
 import {
   searchParamsToFilters,
   filtersToSearchParams,
@@ -14,13 +15,13 @@ import { useTRPC } from "@/trpc/react";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { Suspense } from "react";
 import { ErrorBoundary } from "react-error-boundary";
+import { format } from "date-fns";
+import dynamic from 'next/dynamic';
+import { SortOption } from "@/types/types";
 
 import FilterBar from "../_modules/components/filter-bar";
 import PropertiesSidebar from "../_modules/components/properties-sidebar";
 import EmptyState from "@/components/global-ui/empty-state";
-import { format } from "date-fns";
-
-import dynamic from 'next/dynamic';
 
 // Dynamically import with no SSR
 const HostelMap = dynamic(() => import("../_modules/components/hostel-map"), { 
@@ -58,7 +59,9 @@ const MainSectionContent = ({ searchParams }: FilterSectionProps) => {
   const { viewMode, setViewMode } = useViewStore();
   
   // Initialize state directly from URL params (no useEffect needed)
-  const [sortBy, setSortBy] = useState(searchParams.sort || "newest");
+  const [sortBy, setSortBy] = useState<SortOption>(
+  (searchParams.sort as SortOption) || "newest"
+);
   const [filters, setFilters] = useState<FilterState>(() => 
     searchParamsToFilters(searchParams)
   );
@@ -111,6 +114,7 @@ const MainSectionContent = ({ searchParams }: FilterSectionProps) => {
     }));
   }, [formattedHostels]);
 
+  // This function helps update URL when filters/sort changes
   const updateURL = (newFilters: FilterState, newSort: string) => {
     const params = new URLSearchParams();
     const filterParams = filtersToSearchParams(newFilters);
@@ -147,11 +151,12 @@ const MainSectionContent = ({ searchParams }: FilterSectionProps) => {
     updateURL(newFilters, sortBy);
   };
 
-  const handleSortChange = (newSort: string) => {
+  const handleSortChange = (newSort: SortOption) => {
     setSortBy(newSort);
     updateURL(filters, newSort);
   };
 
+  // This function helps filter hostels based on filters and sort
   const filteredProperties = useMemo(() => {
     return formattedHostels.filter((property) => {
       // Price filter
@@ -184,6 +189,7 @@ const MainSectionContent = ({ searchParams }: FilterSectionProps) => {
     });
   }, [formattedHostels, filters]);
 
+  // This function helps sort filtered hostels
   const sortedProperties = useMemo(() => {
     const sorted = [...filteredProperties];
     switch (sortBy) {

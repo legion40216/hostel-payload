@@ -1,74 +1,72 @@
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
-import { Filter, X } from 'lucide-react'
-import { formatter } from '@/utils/formatters'
-import { Facility, RoomType, BedsPerRoom, Areas } from '@/types/types'
-import { FACILITY_MAP } from '@/data/constants'
+import { useState } from "react";
 
-import { Button } from '@/components/ui/button'
-import { Label } from '@/components/ui/label'
-import { Slider } from '@/components/ui/slider'
-import { Checkbox } from '@/components/ui/checkbox'
+import { useRouter } from "next/navigation";
+import { Filter, X } from "lucide-react";
+import { formatter } from "@/utils/formatters";
+import { Facility, RoomType, BedsPerRoom, Areas } from "@/types/types";
+import { bedsPerRoomOptions, FACILITY_MAP, roomTypeOptions } from "@/data/constants";
 
-import { 
-  RadioGroup, 
-  RadioGroupItem 
-} from '@/components/ui/radio-group'
+import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import { Slider } from "@/components/ui/slider";
+import { Checkbox } from "@/components/ui/checkbox";
 
-import { 
-  Sheet, 
-  SheetContent, 
-  SheetTrigger, 
-  SheetTitle, 
-  SheetDescription 
-} from '@/components/ui/sheet'
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 
-import { 
-  Select, 
-  SelectContent, 
-  SelectItem, 
-  SelectTrigger, 
-  SelectValue 
-} from '@/components/ui/select'
+import {
+  Sheet,
+  SheetContent,
+  SheetTrigger,
+  SheetTitle,
+  SheetDescription,
+} from "@/components/ui/sheet";
+
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 interface FilterState {
-  priceRange: [number, number]
-  facilities: Facility[]
-  roomType: RoomType | "all"
-  area: string
-  bedsPerRoom: BedsPerRoom | "all"
+  priceRange: [number, number];
+  facilities: Facility[];
+  roomType: RoomType | "all";
+  area: string;
+  bedsPerRoom: BedsPerRoom | "all";
 }
 
 interface FilterSheetProps {
-  filters: FilterState
-  setFilters: (filters: FilterState) => void
-  onApply: () => void
-  areas: Areas
+  filters: FilterState;
+  setFilters: (filters: FilterState) => void;
+  onApply: () => void;
+  areas: Areas;
 }
 
-export default function FilterSheet({ 
-  filters, 
-  setFilters, 
+export default function FilterSheet({
+  filters,
+  setFilters,
   onApply,
-  areas 
+  areas,
 }: FilterSheetProps) {
-  const router = useRouter()
+  const router = useRouter();
 
-  const [localFilters, setLocalFilters] = useState<FilterState>(filters)
-  const [isOpen, setIsOpen] = useState(false)
+  const [localFilters, setLocalFilters] = useState<FilterState>(filters);
+  const [isOpen, setIsOpen] = useState(false);
 
   const handleFacilityToggle = (facility: Facility) => {
-    setLocalFilters(prev => {
+    setLocalFilters((prev) => {
       const newFacilities = prev.facilities.includes(facility)
-        ? prev.facilities.filter(f => f !== facility)
-        : [...prev.facilities, facility]
-      
+        ? prev.facilities.filter((f) => f !== facility)
+        : [...prev.facilities, facility];
+
       return {
         ...prev,
-        facilities: newFacilities
-      }
-    })
-  }
+        facilities: newFacilities,
+      };
+    });
+  };
 
   const handleClearAll = () => {
     const cleared: FilterState = {
@@ -76,24 +74,24 @@ export default function FilterSheet({
       facilities: [],
       roomType: "all",
       area: "all",
-      bedsPerRoom: "all"
-    }
-    
-    setLocalFilters(cleared)
-    setFilters(cleared)
-    
+      bedsPerRoom: "all",
+    };
+
+    setLocalFilters(cleared);
+    setFilters(cleared);
+
     // Clear URL query params
-    router.push(window.location.pathname, { scroll: false })
-    
+    router.push(window.location.pathname, { scroll: false });
+
     // Close the sheet
-    setIsOpen(false)
-  }
+    setIsOpen(false);
+  };
 
   const handleApply = () => {
-    setFilters(localFilters)
-    onApply()
-    setIsOpen(false)
-  }
+    setFilters(localFilters);
+    onApply();
+    setIsOpen(false);
+  };
 
   const activeFiltersCount = (() => {
     const countFilters = (f: FilterState) =>
@@ -101,27 +99,42 @@ export default function FilterSheet({
       (f.roomType !== "all" ? 1 : 0) +
       (f.area !== "all" ? 1 : 0) +
       (f.bedsPerRoom !== "all" ? 1 : 0) +
-      (f.priceRange[0] !== 3000 || f.priceRange[1] !== 20000 ? 1 : 0)
+      (f.priceRange[0] !== 3000 || f.priceRange[1] !== 20000 ? 1 : 0);
 
-    return isOpen ? countFilters(localFilters) : countFilters(filters)
-  })()
+    return isOpen ? countFilters(localFilters) : countFilters(filters);
+  })();
+
+  const roomTypeLabels: Record<RoomType, string> = {
+  male: "Male Only",
+  female: "Female Only",
+  mixed: "Mixed / Co-ed",
+  };
+
+  const bedroomsTypeLabels: Record<BedsPerRoom, string> = {
+    single: "Single (1 bed)",
+    double: "Double (2 beds)",
+    triple: "Triple (3 beds)",
+  };
 
   return (
-      <Sheet
-        open={isOpen}
-        onOpenChange={(open) => {
-          setIsOpen(open);
-          if (open) {
-            setLocalFilters(filters);
-          }
-        }}
-      >
+    <Sheet
+      open={isOpen}
+      onOpenChange={(open) => {
+        setIsOpen(open);
+        if (open) {
+          setLocalFilters(filters);
+        }
+      }}
+    >
       <SheetTrigger asChild>
         <Button variant="outline">
           <Filter className="mr-2 size-4" />
           Filters
           {activeFiltersCount > 0 && (
-            <span className="ml-2 rounded-full bg-primary px-2 py-0.5 text-xs text-primary-foreground">
+            <span
+              className="ml-2 rounded-full bg-primary px-2 py-0.5 text-xs 
+              text-primary-foreground"
+            >
               {activeFiltersCount}
             </span>
           )}
@@ -175,6 +188,7 @@ export default function FilterSheet({
           {/* Room Type */}
           <div className="space-y-3">
             <Label className="text-base font-medium">Room Type</Label>
+
             <RadioGroup
               value={localFilters.roomType}
               onValueChange={(value) =>
@@ -184,30 +198,26 @@ export default function FilterSheet({
                 }))
               }
             >
+              {/* All */}
               <div className="flex items-center space-x-2">
-                <RadioGroupItem value="all" id="all" />
-                <Label htmlFor="all" className="font-normal cursor-pointer">
+                <RadioGroupItem value="all" id="room-all" />
+                <Label htmlFor="room-all" className="font-normal cursor-pointer">
                   All
                 </Label>
               </div>
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="male" id="male" />
-                <Label htmlFor="male" className="font-normal cursor-pointer">
-                  Male Only
-                </Label>
-              </div>
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="female" id="female" />
-                <Label htmlFor="female" className="font-normal cursor-pointer">
-                  Female Only
-                </Label>
-              </div>
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="mixed" id="mixed" />
-                <Label htmlFor="mixed" className="font-normal cursor-pointer">
-                  Mixed/Co-ed
-                </Label>
-              </div>
+
+              {/* Dynamic room types */}
+              {roomTypeOptions.map((type) => (
+                <div key={type} className="flex items-center space-x-2">
+                  <RadioGroupItem value={type} id={`room-${type}`} />
+                  <Label
+                    htmlFor={`room-${type}`}
+                    className="font-normal cursor-pointer"
+                  >
+                    {roomTypeLabels[type]}
+                  </Label>
+                </div>
+              ))}
             </RadioGroup>
           </div>
 
@@ -258,30 +268,22 @@ export default function FilterSheet({
                   Any
                 </Label>
               </div>
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="single" id="single" />
-                <Label htmlFor="single" className="font-normal cursor-pointer">
-                  Single (1 bed)
-                </Label>
-              </div>
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="double" id="double" />
-                <Label htmlFor="double" className="font-normal cursor-pointer">
-                  Shared (2 beds)
-                </Label>
-              </div>
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="triple" id="triple" />
-                <Label htmlFor="triple" className="font-normal cursor-pointer">
-                  Shared (3+ beds)
-                </Label>
-              </div>
+
+              {bedsPerRoomOptions.map((beds) => (
+                <div key={beds} className="flex items-center space-x-2">
+                  <RadioGroupItem value={beds} id={`beds-${beds}`} />
+                  <Label htmlFor={`beds-${beds}`} className="font-normal cursor-pointer">
+                    {bedroomsTypeLabels[beds]}
+                  </Label>
+                </div>
+              ))}
             </RadioGroup>
           </div>
 
           {/* Facilities */}
           <div className="space-y-3">
             <Label className="text-base font-medium">Facilities</Label>
+            
             <div className="space-y-2">
               {Object.entries(FACILITY_MAP).map(([name]) => (
                 <div key={name} className="flex items-center space-x-3">

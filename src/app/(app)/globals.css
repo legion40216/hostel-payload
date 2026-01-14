@@ -132,15 +132,6 @@
   }
 }
 
-@layer base {
-  * {
-    @apply border-border outline-ring/50;
-  }
-  body {
-    @apply bg-background text-foreground;
-  }
-}
-
 @import 'leaflet/dist/leaflet.css';
 
 /* Your existing marker styles */

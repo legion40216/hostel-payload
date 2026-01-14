@@ -9,9 +9,7 @@ export const AREAS: { value: string; label: string }[] = [
   { value: "Cantonment", label: "Cantonment" }
 ]
 
-
 // Note: AREAS is now removed - areas are dynamic from the database
-
 export const properties: Properties = [
   {
     id: 1,
